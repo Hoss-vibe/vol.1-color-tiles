@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Tiles - 색상 타일 게임</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="game-container">
+    <header class="game-header">
+      <h1>Color Tiles</h1>
+      <div class="game-info">
+        <div class="score">
+          <span class="label">점수:</span>
+          <span id="score">0</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="game-board" id="gameBoard">
+      <!-- 게임 타일들이 여기에 동적으로 생성됩니다 -->
+    </div>
+
+    <div class="game-controls">
+      <button id="startBtn" class="btn btn-primary">게임 시작</button>
+      <button id="resetBtn" class="btn btn-secondary">다시 시작</button>
+    </div>
+
+    <div class="game-instructions">
+      <h3>게임 방법</h3>
+      <ul>
+        <li>빈 공간을 클릭하세요</li>
+        <li>클릭한 위치에서 가로/세로로 인접한 같은 색깔 타일들을 획득합니다</li>
+        <li>타일 1개당 1점을 얻습니다</li>
+        <li>최대한 많은 점수를 획득하세요</li>
+      </ul>
+    </div>
+
+    <div id="gameOverModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>게임 종료!</h2>
+        <p>최종 점수: <span id="finalScore">0</span>점</p>
+        <button id="playAgainBtn" class="btn btn-primary">다시 플레이</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
