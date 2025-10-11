@@ -59,24 +59,26 @@ body {
 }
 
 .game-info {
-  display: flex;
-  justify-content: space-between;
-  background: var(--bg-primary);
-  padding: 15px 25px;
-  border-radius: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
   margin-bottom: 20px;
 }
 
 .game-info .score,
 .game-info .timer {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-primary);
+  padding: 15px 20px;
+  border-radius: 15px;
 }
 
 .game-info .label {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -90,9 +92,9 @@ body {
 
 .game-board {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  gap: 2px;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  gap: 3px;
   background: var(--border-color);
   border-radius: 15px;
   padding: 10px;
@@ -105,18 +107,18 @@ body {
 
 .tile {
   background: var(--bg-secondary);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 600;
   position: relative;
   overflow: hidden;
-  min-height: 25px;
-  min-width: 25px;
+  min-height: 35px;
+  min-width: 35px;
 }
 
 .tile:hover {
@@ -137,10 +139,12 @@ body {
   background: #edf2f7;
 }
 
-/* 색상 타일들 */
-.tile.color-0 { background: var(--accent-red); }    /* 빨간색 */
-.tile.color-1 { background: var(--accent-blue); }   /* 파란색 */
-.tile.color-2 { background: var(--accent-green); }  /* 초록색 */
+/* 색상 타일들 - 파스텔 톤 */
+.tile.color-0 { background: #FFB3BA; }  /* 파스텔 핑크 */
+.tile.color-1 { background: #BAE1FF; }  /* 파스텔 블루 */
+.tile.color-2 { background: #BAFFC9; }  /* 파스텔 민트 */
+.tile.color-3 { background: #D5AAFF; }  /* 파스텔 퍼플 */
+.tile.color-4 { background: #FFCAB0; }  /* 파스텔 코랄 */
 
 /* 애니메이션 효과 */
 .tile.matched {

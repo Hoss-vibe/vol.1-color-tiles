@@ -1,7 +1,7 @@
 class ColorTilesGame {
   constructor() {
-    this.boardSize = 10;
-    this.numColors = 3;
+    this.boardSize = 8;
+    this.numColors = 5;
     this.gameBoard = document.getElementById('gameBoard');
     this.scoreElement = document.getElementById('score');
     this.timerElement = document.getElementById('timer');
@@ -14,12 +14,16 @@ class ColorTilesGame {
     
     this.board = [];
     this.score = 0;
+    this.timeLeft = 50;
     this.gameActive = false;
+    this.timerInterval = null;
     
     this.colors = [
-      'color-0', // 빨간색
-      'color-1', // 파란색
-      'color-2'  // 초록색
+      'color-0', // 파스텔 핑크
+      'color-1', // 파스텔 블루
+      'color-2', // 파스텔 민트
+      'color-3', // 파스텔 퍼플
+      'color-4'  // 파스텔 코랄
     ];
     
     this.initializeEventListeners();
@@ -48,10 +52,10 @@ class ColorTilesGame {
     this.gameBoard.innerHTML = '';
     this.board = [];
     
-    // 전체 타일 수 계산 (8x8 = 64개)
-    const totalTiles = 64;
-    const boardCells = this.boardSize * this.boardSize; // 20x20 = 400개
-    const emptySpaces = boardCells - totalTiles; // 336개의 빈 공간
+    // 전체 타일 수 계산 (8x8 보드, 40개 타일 = 62.5%)
+    const totalTiles = 40; // 5색상 x 8개씩 = 40개
+    const boardCells = this.boardSize * this.boardSize; // 64개
+    const emptySpaces = boardCells - totalTiles; // 24개 빈 공간
     
     // 모든 셀을 빈 공간으로 초기화
     for (let row = 0; row < this.boardSize; row++) {
@@ -113,13 +117,17 @@ class ColorTilesGame {
   startGame() {
     this.gameActive = true;
     this.score = 0;
+    this.timeLeft = 50;
     this.updateDisplay();
     this.instructionsModal.classList.add('hidden');
+    this.startTimer();
   }
   
   resetGame() {
     this.gameActive = false;
     this.score = 0;
+    this.timeLeft = 50;
+    this.stopTimer();
     this.updateDisplay();
     this.initializeBoard();
     this.gameOverModal.classList.add('hidden');
@@ -146,6 +154,7 @@ class ColorTilesGame {
   
   updateDisplay() {
     this.scoreElement.textContent = this.score;
+    this.timerElement.textContent = this.timeLeft;
   }
   
   handleTileClick(row, col) {
@@ -387,6 +396,7 @@ class ColorTilesGame {
   
   endGame() {
     this.gameActive = false;
+    this.stopTimer();
     this.finalScoreElement.textContent = this.score;
     this.gameOverModal.classList.remove('hidden');
   }
