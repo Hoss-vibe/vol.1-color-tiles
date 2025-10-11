@@ -111,7 +111,7 @@ class ColorTilesGame {
               isEmpty: false
             };
             tileIndex++;
-          } else {
+    } else {
             // 이미 타일이 있으면 다시 시도
             col--;
           }
@@ -262,28 +262,32 @@ class ColorTilesGame {
     });
     
     if (allMatchedTiles.length > 0) {
-      // 타일들을 제거하고 점수 추가
-      allMatchedTiles.forEach(({row: r, col: c}) => {
-        this.board[r][c].isEmpty = true;
-        this.board[r][c].color = null;
-      });
-      
+      // 점수 추가 (타일은 아직 삭제하지 않음)
       this.score += allMatchedTiles.length;
       this.updateDisplay();
-      this.renderBoard();
       
       // 매칭 애니메이션과 연결선 표시
       this.animateMatchedTilesWithConnections(allMatchedTiles, row, col);
       
-      // 보드가 비어있으면 게임 종료
-      if (this.isBoardEmpty()) {
-        this.endGame('clear');
-      } else {
-        // 더 이상 움직일 수 없는지 확인
-        if (!this.hasValidMoves()) {
-          this.endGame('nomoves');
+      // 애니메이션이 끝난 후 타일 삭제 및 화면 업데이트
+      setTimeout(() => {
+        allMatchedTiles.forEach(({row: r, col: c}) => {
+          this.board[r][c].isEmpty = true;
+          this.board[r][c].color = null;
+        });
+        
+        this.renderBoard();
+        
+        // 보드가 비어있으면 게임 종료
+        if (this.isBoardEmpty()) {
+          this.endGame('clear');
+        } else {
+          // 더 이상 움직일 수 없는지 확인
+          if (!this.hasValidMoves()) {
+            this.endGame('nomoves');
+          }
         }
-      }
+      }, 300); // 애니메이션 300ms
     } else {
       this.handleWrongClick();
     }
@@ -414,21 +418,79 @@ class ColorTilesGame {
   }
   
   animateMatchedTilesWithConnections(matchedTiles, clickedRow, clickedCol) {
-    // 먼저 연결선을 표시
-    this.showConnectionLines(matchedTiles, clickedRow, clickedCol);
+    // 타일들이 깨지는 애니메이션 (8개 파티클 효과)
+    matchedTiles.forEach(({row, col, color}) => {
+      const tileIndex = row * this.boardSize + col;
+      const tile = this.gameBoard.children[tileIndex];
+      
+      // 타일에 matched 클래스 추가
+      tile.classList.add('matched');
+      
+      // 8개의 파티클 생성
+      this.createParticles(tile, color);
+      
+      setTimeout(() => {
+        tile.classList.remove('matched');
+      }, 400);
+    });
+  }
+  
+  createParticles(tile, color) {
+    // 타일 색상 가져오기
+    const colorMap = {
+      0: '#FFB3BA',
+      1: '#BAE1FF',
+      2: '#BAFFC9',
+      3: '#D5AAFF',
+      4: '#FFCAB0'
+    };
     
-    // 잠시 후 타일들이 사라지는 애니메이션
-    setTimeout(() => {
-      matchedTiles.forEach(({row, col}) => {
-        const tileIndex = row * this.boardSize + col;
-        const tile = this.gameBoard.children[tileIndex];
-        tile.classList.add('matched');
-        
-        setTimeout(() => {
-          tile.classList.remove('matched');
-        }, 300);
-      });
-    }, 500);
+    const particleColor = colorMap[color] || colorMap[0];
+    
+    // 8방향으로 파티클 생성
+    const directions = [
+      {x: -1, y: -1},  // 왼쪽 위
+      {x: 0, y: -1},   // 위
+      {x: 1, y: -1},   // 오른쪽 위
+      {x: 1, y: 0},    // 오른쪽
+      {x: 1, y: 1},    // 오른쪽 아래
+      {x: 0, y: 1},    // 아래
+      {x: -1, y: 1},   // 왼쪽 아래
+      {x: -1, y: 0}    // 왼쪽
+    ];
+    
+    directions.forEach((dir, index) => {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.position = 'absolute';
+      particle.style.left = '50%';
+      particle.style.top = '50%';
+      particle.style.width = '10px';
+      particle.style.height = '10px';
+      particle.style.background = particleColor;
+      particle.style.borderRadius = '50%';
+      particle.style.pointerEvents = 'none';
+      particle.style.zIndex = '10';
+      particle.style.marginLeft = '-5px';
+      particle.style.marginTop = '-5px';
+      
+      // 각 방향으로 날아가는 거리와 회전
+      const distance = 40 + Math.random() * 15;
+      const angle = Math.random() * 360;
+      
+      particle.style.setProperty('--tx', (dir.x * distance) + 'px');
+      particle.style.setProperty('--ty', (dir.y * distance) + 'px');
+      particle.style.setProperty('--rotate', angle + 'deg');
+      particle.style.animation = `particleFly${index} 0.4s ease-out forwards`;
+      
+      tile.appendChild(particle);
+      
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      }, 400);
+    });
   }
   
   showConnectionLines(matchedTiles, clickedRow, clickedCol) {
@@ -482,12 +544,12 @@ class ColorTilesGame {
       connectionOverlay.appendChild(line);
     });
     
-    // 500ms 후 연결선 제거
+    // 300ms 후 연결선 제거
     setTimeout(() => {
       if (connectionOverlay.parentNode) {
         connectionOverlay.parentNode.removeChild(connectionOverlay);
       }
-    }, 500);
+    }, 300);
   }
   
   handleWrongClick() {

@@ -40,6 +40,7 @@ body {
   padding: 15px;
   max-width: 95vw;
   width: 100%;
+  overflow: visible;
 }
 
 .game-header {
@@ -104,6 +105,8 @@ body {
   width: 100%;
   margin-left: auto;
   margin-right: auto;
+  position: relative;
+  overflow: visible;
 }
 
 .tile {
@@ -182,13 +185,108 @@ body {
 
 /* 애니메이션 효과 */
 .tile.matched {
-  animation: matchAnimation 0.3s ease-out;
+  animation: tileBreak 0.4s ease-out forwards;
+  overflow: visible !important;
 }
 
-@keyframes matchAnimation {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.7; }
-  100% { transform: scale(0); opacity: 0; }
+@keyframes tileBreak {
+  0% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  30% { 
+    transform: scale(1.1); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(0.8); 
+    opacity: 0;
+  }
+}
+
+/* 8개 파티클 생성 */
+.tile.matched::before,
+.tile.matched::after {
+  content: '';
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  background: inherit;
+  border-radius: 2px;
+  opacity: 1;
+}
+
+/* 파티클 1 (왼쪽 위) */
+.tile.matched::before {
+  top: 10%;
+  left: 10%;
+  animation: particle1 0.5s ease-out forwards;
+}
+
+/* 파티클 2 (오른쪽 위) */
+.tile.matched::after {
+  top: 10%;
+  right: 10%;
+  animation: particle2 0.5s ease-out forwards;
+}
+
+@keyframes particle1 {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(-30px, -30px) rotate(-90deg); opacity: 0; }
+}
+
+@keyframes particle2 {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(30px, -30px) rotate(90deg); opacity: 0; }
+}
+
+/* 8방향 파티클 애니메이션 */
+.particle {
+  animation: particleFly 0.5s ease-out forwards;
+}
+
+@keyframes particleFly {
+  0% { 
+    transform: translate(0, 0) rotate(0deg) scale(1); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.5); 
+    opacity: 0; 
+  }
+}
+
+@keyframes particleFly0 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly1 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly2 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly3 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly4 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly5 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly6 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
+}
+@keyframes particleFly7 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
 }
 
 .connection-overlay {
