@@ -334,6 +334,17 @@ body {
   font-size: 1.2rem;
 }
 
+.game-over-message {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.final-score-text {
+  margin-bottom: 30px;
+}
+
 .modal-content #finalScore {
   color: var(--accent-blue);
   font-weight: 700;

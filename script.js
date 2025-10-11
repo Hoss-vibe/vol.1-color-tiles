@@ -13,6 +13,8 @@ class ColorTilesGame {
     this.playAgainBtn = document.getElementById('playAgainBtn');
     this.instructionsModal = document.getElementById('instructionsModal');
     this.gameOverModal = document.getElementById('gameOverModal');
+    this.gameOverTitle = document.getElementById('gameOverTitle');
+    this.gameOverMessage = document.getElementById('gameOverMessage');
     this.finalScoreElement = document.getElementById('finalScore');
     
     this.board = [];
@@ -198,7 +200,7 @@ class ColorTilesGame {
       this.updateDisplay();
       
       if (this.timeLeft <= 0) {
-        this.endGame();
+        this.endGame('timeout');
       }
     }, 1000);
   }
@@ -275,7 +277,12 @@ class ColorTilesGame {
       
       // 보드가 비어있으면 게임 종료
       if (this.isBoardEmpty()) {
-        this.endGame();
+        this.endGame('clear');
+      } else {
+        // 더 이상 움직일 수 없는지 확인
+        if (!this.hasValidMoves()) {
+          this.endGame('nomoves');
+        }
       }
     } else {
       this.handleWrongClick();
@@ -362,6 +369,48 @@ class ColorTilesGame {
       }
     }
     return true;
+  }
+  
+  hasValidMoves() {
+    // 모든 빈 공간을 확인
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        if (this.board[row][col].isEmpty) {
+          // 이 빈 공간에서 매칭 가능한지 확인
+          const directions = [
+            {row: -1, col: 0}, // 위
+            {row: 1, col: 0},  // 아래
+            {row: 0, col: -1}, // 왼쪽
+            {row: 0, col: 1}   // 오른쪽
+          ];
+          
+          const foundTiles = [];
+          directions.forEach(dir => {
+            const firstTile = this.findFirstTileInDirection(row, col, dir.row, dir.col);
+            if (firstTile) {
+              foundTiles.push(firstTile);
+            }
+          });
+          
+          // 같은 색상끼리 그룹화
+          const colorGroups = {};
+          foundTiles.forEach(tile => {
+            if (!colorGroups[tile.color]) {
+              colorGroups[tile.color] = [];
+            }
+            colorGroups[tile.color].push(tile);
+          });
+          
+          // 같은 색상이 2개 이상인 그룹이 있으면 매칭 가능
+          for (const color in colorGroups) {
+            if (colorGroups[color].length >= 2) {
+              return true; // 유효한 움직임이 있음
+            }
+          }
+        }
+      }
+    }
+    return false; // 더 이상 유효한 움직임 없음
   }
   
   animateMatchedTilesWithConnections(matchedTiles, clickedRow, clickedCol) {
@@ -452,10 +501,23 @@ class ColorTilesGame {
     });
   }
   
-  endGame() {
+  endGame(reason = 'timeout') {
     this.gameActive = false;
     this.stopTimer();
     this.finalScoreElement.textContent = this.score;
+    
+    // 종료 사유에 따라 메시지 변경
+    if (reason === 'timeout') {
+      this.gameOverTitle.textContent = '시간 종료!';
+      this.gameOverMessage.textContent = '50초가 모두 지나갔습니다.';
+    } else if (reason === 'clear') {
+      this.gameOverTitle.textContent = '완벽합니다! 🎉';
+      this.gameOverMessage.textContent = '모든 타일을 제거했습니다!';
+    } else if (reason === 'nomoves') {
+      this.gameOverTitle.textContent = '게임 종료!';
+      this.gameOverMessage.textContent = '더 이상 움직일 수 없습니다.';
+    }
+    
     this.gameOverModal.classList.remove('hidden');
   }
 }
