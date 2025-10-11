@@ -339,50 +339,51 @@ body {
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .game-container {
-    padding: 20px;
+    padding: 15px;
     margin: 10px;
   }
   
   .game-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
   
   .game-board {
-    max-width: 500px;
-    gap: 1px;
+    max-width: 100%;
+    gap: 2px;
+    padding: 8px;
   }
   
   .tile {
-    font-size: 0.4rem;
-    min-height: 12px;
-    min-width: 12px;
+    font-size: 0.7rem;
+    min-height: 40px;
+    min-width: 40px;
+    border-radius: 6px;
   }
   
   .game-info {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .game-info .score,
-  .game-info .timer {
-    flex-direction: row;
     gap: 10px;
   }
 }
 
 @media (max-width: 480px) {
+  .game-container {
+    padding: 10px;
+  }
+  
   .game-board {
-    max-width: 400px;
+    max-width: 100%;
+    gap: 2px;
+    padding: 6px;
   }
   
   .tile {
-    font-size: 0.3rem;
-    min-height: 10px;
-    min-width: 10px;
+    font-size: 0.6rem;
+    min-height: 35px;
+    min-width: 35px;
   }
   
   .btn {
-    padding: 10px 20px;
-    font-size: 0.9rem;
+    padding: 12px 24px;
+    font-size: 1rem;
   }
 }
