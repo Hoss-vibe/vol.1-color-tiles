@@ -347,8 +347,6 @@ class ColorTilesGame {
       const tileCenterX = tileRect.left + tileRect.width / 2 - boardRect.left;
       const tileCenterY = tileRect.top + tileRect.height / 2 - boardRect.top;
       
-      const lineColor = '#B2D2F2';
-      
       // 연결선 생성
       const line = document.createElement('div');
       line.className = 'connection-line';
@@ -360,11 +358,10 @@ class ColorTilesGame {
       line.style.left = clickedCenterX + 'px';
       line.style.top = clickedCenterY + 'px';
       line.style.width = distance + 'px';
-      line.style.height = '4px';
-      line.style.backgroundColor = lineColor;
+      line.style.height = '3px';
+      line.style.borderTop = '3px dashed rgba(255, 0, 0, 0.8)';
       line.style.transformOrigin = '0 50%';
       line.style.transform = `rotate(${angle}deg)`;
-      line.style.borderRadius = '2px';
       
       connectionOverlay.appendChild(line);
     });
