@@ -23,18 +23,21 @@
     </div>
 
     <div class="game-controls">
-      <button id="startBtn" class="btn btn-primary">게임 시작</button>
       <button id="resetBtn" class="btn btn-secondary">다시 시작</button>
     </div>
 
-    <div class="game-instructions">
-      <h3>게임 방법</h3>
-      <ul>
-        <li>빈 공간을 클릭하세요</li>
-        <li>클릭한 위치에서 가로/세로로 인접한 같은 색깔 타일들을 획득합니다</li>
-        <li>타일 1개당 1점을 얻습니다</li>
-        <li>최대한 많은 점수를 획득하세요</li>
-      </ul>
+    <div id="instructionsModal" class="modal">
+      <div class="modal-content">
+        <h2>게임 방법</h2>
+        <ul class="instructions-list">
+          <li>빈 공간을 클릭하세요</li>
+          <li>클릭한 위치에서 상하좌우로 같은 색깔 타일을 찾습니다</li>
+          <li>같은 색깔이 2개 이상이면 매칭됩니다</li>
+          <li>타일 1개당 1점을 얻습니다</li>
+          <li>최대한 많은 점수를 획득하세요!</li>
+        </ul>
+        <button id="startGameBtn" class="btn btn-primary btn-large">게임 시작</button>
+      </div>
     </div>
 
     <div id="gameOverModal" class="modal hidden">

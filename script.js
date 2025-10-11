@@ -1,13 +1,14 @@
 class ColorTilesGame {
   constructor() {
-    this.boardSize = 20;
+    this.boardSize = 10;
     this.numColors = 3;
     this.gameBoard = document.getElementById('gameBoard');
     this.scoreElement = document.getElementById('score');
     this.timerElement = document.getElementById('timer');
-    this.startBtn = document.getElementById('startBtn');
+    this.startGameBtn = document.getElementById('startGameBtn');
     this.resetBtn = document.getElementById('resetBtn');
     this.playAgainBtn = document.getElementById('playAgainBtn');
+    this.instructionsModal = document.getElementById('instructionsModal');
     this.gameOverModal = document.getElementById('gameOverModal');
     this.finalScoreElement = document.getElementById('finalScore');
     
@@ -26,7 +27,7 @@ class ColorTilesGame {
   }
   
   initializeEventListeners() {
-    this.startBtn.addEventListener('click', () => this.startGame());
+    this.startGameBtn.addEventListener('click', () => this.startGame());
     this.resetBtn.addEventListener('click', () => this.resetGame());
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
     
@@ -113,8 +114,7 @@ class ColorTilesGame {
     this.gameActive = true;
     this.score = 0;
     this.updateDisplay();
-    this.startBtn.textContent = '게임 중...';
-    this.startBtn.disabled = true;
+    this.instructionsModal.classList.add('hidden');
   }
   
   resetGame() {
@@ -122,9 +122,8 @@ class ColorTilesGame {
     this.score = 0;
     this.updateDisplay();
     this.initializeBoard();
-    this.startBtn.textContent = '게임 시작';
-    this.startBtn.disabled = false;
     this.gameOverModal.classList.add('hidden');
+    this.instructionsModal.classList.remove('hidden');
   }
   
   startTimer() {
@@ -392,8 +391,6 @@ class ColorTilesGame {
     this.gameActive = false;
     this.finalScoreElement.textContent = this.score;
     this.gameOverModal.classList.remove('hidden');
-    this.startBtn.textContent = '게임 시작';
-    this.startBtn.disabled = false;
   }
 }
 

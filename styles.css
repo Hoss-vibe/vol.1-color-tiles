@@ -90,33 +90,33 @@ body {
 
 .game-board {
   display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  grid-template-rows: repeat(20, 1fr);
-  gap: 1px;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 2px;
   background: var(--border-color);
   border-radius: 15px;
   padding: 10px;
   margin-bottom: 30px;
   aspect-ratio: 1;
-  max-width: 600px;
+  max-width: 400px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .tile {
   background: var(--bg-secondary);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.5rem;
+  font-size: 0.7rem;
   font-weight: 600;
   position: relative;
   overflow: hidden;
-  min-height: 15px;
-  min-width: 15px;
+  min-height: 25px;
+  min-width: 25px;
 }
 
 .tile:hover {
@@ -307,6 +307,36 @@ body {
   color: var(--accent-blue);
   font-weight: 700;
   font-size: 1.5rem;
+}
+
+.instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 30px 0;
+  text-align: left;
+}
+
+.instructions-list li {
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  padding-left: 25px;
+  position: relative;
+  font-size: 1rem;
+}
+
+.instructions-list li:before {
+  content: "✓";
+  color: var(--accent-blue);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  font-size: 1.2rem;
+}
+
+.btn-large {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  width: 100%;
 }
 
 /* 반응형 디자인 */
