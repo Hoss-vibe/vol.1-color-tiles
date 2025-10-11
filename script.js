@@ -330,22 +330,26 @@ class ColorTilesGame {
     this.gameBoard.style.position = 'relative';
     this.gameBoard.appendChild(connectionOverlay);
     
-    // 클릭한 위치의 중심점 계산
-    const clickedTile = this.gameBoard.children[clickedRow * this.boardSize + clickedCol];
+    // 클릭한 빈 공간의 중심점 계산
+    const clickedTileIndex = clickedRow * this.boardSize + clickedCol;
+    const clickedTile = this.gameBoard.children[clickedTileIndex];
     const clickedRect = clickedTile.getBoundingClientRect();
     const boardRect = this.gameBoard.getBoundingClientRect();
     const clickedCenterX = clickedRect.left + clickedRect.width / 2 - boardRect.left;
     const clickedCenterY = clickedRect.top + clickedRect.height / 2 - boardRect.top;
     
-    // 각 매칭된 타일로부터 클릭한 위치까지 선 그리기
-    matchedTiles.forEach(({row, col}) => {
+    // 클릭한 위치에서 각 매칭된 타일로 선 그리기
+    matchedTiles.forEach(({row, col, color}) => {
       const tileIndex = row * this.boardSize + col;
-      const tile = this.gameBoard.children[tileIndex];
-      const tileRect = tile.getBoundingClientRect();
+      const tileElement = this.gameBoard.children[tileIndex];
+      const tileRect = tileElement.getBoundingClientRect();
+      
       const tileCenterX = tileRect.left + tileRect.width / 2 - boardRect.left;
       const tileCenterY = tileRect.top + tileRect.height / 2 - boardRect.top;
       
-      // 타일의 색상에 맞는 연결선 생성
+      const lineColor = '#B2D2F2';
+      
+      // 연결선 생성
       const line = document.createElement('div');
       line.className = 'connection-line';
       
@@ -356,14 +360,11 @@ class ColorTilesGame {
       line.style.left = clickedCenterX + 'px';
       line.style.top = clickedCenterY + 'px';
       line.style.width = distance + 'px';
-      line.style.height = '3px';
-      line.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
+      line.style.height = '4px';
+      line.style.backgroundColor = lineColor;
       line.style.transformOrigin = '0 50%';
       line.style.transform = `rotate(${angle}deg)`;
-      line.style.borderStyle = 'dashed';
-      line.style.borderWidth = '0';
-      line.style.borderBottom = '3px dashed rgba(255, 0, 0, 0.6)';
-      line.style.backgroundColor = 'transparent';
+      line.style.borderRadius = '2px';
       
       connectionOverlay.appendChild(line);
     });
