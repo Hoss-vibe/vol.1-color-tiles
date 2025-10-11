@@ -553,6 +553,19 @@ class ColorTilesGame {
   }
   
   handleWrongClick() {
+    // 시간 3초 감점
+    this.timeLeft = Math.max(0, this.timeLeft - 3);
+    this.updateDisplay();
+    
+    // -3초 애니메이션 표시
+    this.showTimePenalty();
+    
+    // 시간이 0이 되면 게임 종료
+    if (this.timeLeft <= 0) {
+      this.endGame('timeout');
+      return;
+    }
+    
     // 잘못된 클릭 애니메이션
     const tiles = this.gameBoard.querySelectorAll('.tile.empty');
     tiles.forEach(tile => {
@@ -561,6 +574,37 @@ class ColorTilesGame {
         tile.classList.remove('wrong-click');
       }, 500);
     });
+  }
+  
+  showTimePenalty() {
+    // 타이머 영역의 위치 가져오기
+    const timerElement = document.querySelector('.timer');
+    if (!timerElement) return;
+    
+    const timerRect = timerElement.getBoundingClientRect();
+    
+    // -3초 텍스트 요소 생성
+    const penaltyText = document.createElement('div');
+    penaltyText.className = 'time-penalty';
+    penaltyText.textContent = '-3초';
+    penaltyText.style.position = 'fixed';
+    penaltyText.style.left = timerRect.left + timerRect.width / 2 + 'px';
+    penaltyText.style.top = timerRect.top + 'px';
+    penaltyText.style.transform = 'translateX(-50%)';
+    penaltyText.style.fontSize = '1.5rem';
+    penaltyText.style.fontWeight = '700';
+    penaltyText.style.color = '#e53e3e';
+    penaltyText.style.pointerEvents = 'none';
+    penaltyText.style.zIndex = '1000';
+    penaltyText.style.animation = 'penaltyFloat 1s ease-out forwards';
+    
+    document.body.appendChild(penaltyText);
+    
+    setTimeout(() => {
+      if (penaltyText.parentNode) {
+        penaltyText.parentNode.removeChild(penaltyText);
+      }
+    }, 1000);
   }
   
   endGame(reason = 'timeout') {

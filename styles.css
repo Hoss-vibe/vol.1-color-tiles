@@ -289,6 +289,26 @@ body {
   100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(0.3); opacity: 0; }
 }
 
+/* 시간 감점 애니메이션 */
+.time-penalty {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes penaltyFloat {
+  0% { 
+    transform: translateX(-50%) translateY(0) scale(1); 
+    opacity: 1; 
+  }
+  50% {
+    transform: translateX(-50%) translateY(-30px) scale(1.2);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateX(-50%) translateY(-60px) scale(0.8); 
+    opacity: 0; 
+  }
+}
+
 .connection-overlay {
   position: absolute;
   top: 0;
