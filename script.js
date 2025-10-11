@@ -5,6 +5,9 @@ class ColorTilesGame {
     this.gameBoard = document.getElementById('gameBoard');
     this.scoreElement = document.getElementById('score');
     this.timerElement = document.getElementById('timer');
+    this.nicknameModal = document.getElementById('nicknameModal');
+    this.nicknameInput = document.getElementById('nicknameInput');
+    this.nicknameSubmitBtn = document.getElementById('nicknameSubmitBtn');
     this.startGameBtn = document.getElementById('startGameBtn');
     this.resetBtn = document.getElementById('resetBtn');
     this.playAgainBtn = document.getElementById('playAgainBtn');
@@ -17,6 +20,7 @@ class ColorTilesGame {
     this.timeLeft = 50;
     this.gameActive = false;
     this.timerInterval = null;
+    this.nickname = '';
     
     this.colors = [
       'color-0', // 파스텔 핑크
@@ -28,9 +32,16 @@ class ColorTilesGame {
     
     this.initializeEventListeners();
     this.initializeBoard();
+    this.loadNickname();
   }
   
   initializeEventListeners() {
+    this.nicknameSubmitBtn.addEventListener('click', () => this.submitNickname());
+    this.nicknameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        this.submitNickname();
+      }
+    });
     this.startGameBtn.addEventListener('click', () => this.startGame());
     this.resetBtn.addEventListener('click', () => this.resetGame());
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
@@ -68,18 +79,41 @@ class ColorTilesGame {
       }
     }
     
-    // 64개의 타일을 랜덤 위치에 배치
-    let tilesPlaced = 0;
-    while (tilesPlaced < totalTiles) {
-      const row = Math.floor(Math.random() * this.boardSize);
-      const col = Math.floor(Math.random() * this.boardSize);
-      
-      if (this.board[row][col].isEmpty) {
-        this.board[row][col] = {
-          color: Math.floor(Math.random() * this.numColors),
-          isEmpty: false
-        };
-        tilesPlaced++;
+    // 각 색상별로 동일한 개수의 타일을 생성 (5색상 x 8개 = 40개)
+    const tilesPerColor = totalTiles / this.numColors; // 40 / 5 = 8개씩
+    const tilesToPlace = [];
+    
+    for (let color = 0; color < this.numColors; color++) {
+      for (let i = 0; i < tilesPerColor; i++) {
+        tilesToPlace.push(color);
+      }
+    }
+    
+    // 배열을 섞기 (Fisher-Yates shuffle)
+    for (let i = tilesToPlace.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tilesToPlace[i], tilesToPlace[j]] = [tilesToPlace[j], tilesToPlace[i]];
+    }
+    
+    // 섞은 타일들을 랜덤 위치에 배치
+    let tileIndex = 0;
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        if (tileIndex < totalTiles) {
+          const randomRow = Math.floor(Math.random() * this.boardSize);
+          const randomCol = Math.floor(Math.random() * this.boardSize);
+          
+          if (this.board[randomRow][randomCol].isEmpty) {
+            this.board[randomRow][randomCol] = {
+              color: tilesToPlace[tileIndex],
+              isEmpty: false
+            };
+            tileIndex++;
+          } else {
+            // 이미 타일이 있으면 다시 시도
+            col--;
+          }
+        }
       }
     }
     
@@ -114,6 +148,30 @@ class ColorTilesGame {
     });
   }
   
+  submitNickname() {
+    const nickname = this.nicknameInput.value.trim();
+    if (!nickname) {
+      alert('닉네임을 입력해주세요!');
+      return;
+    }
+    
+    this.nickname = nickname;
+    // localStorage에 닉네임 저장
+    localStorage.setItem('colorTilesNickname', nickname);
+    
+    // 닉네임 모달 닫고 게임 방법 모달 열기
+    this.nicknameModal.classList.add('hidden');
+    this.instructionsModal.classList.remove('hidden');
+  }
+  
+  loadNickname() {
+    const saved = localStorage.getItem('colorTilesNickname');
+    if (saved) {
+      this.nickname = saved;
+      this.nicknameInput.value = saved;
+    }
+  }
+  
   startGame() {
     this.gameActive = true;
     this.score = 0;
@@ -131,7 +189,7 @@ class ColorTilesGame {
     this.updateDisplay();
     this.initializeBoard();
     this.gameOverModal.classList.add('hidden');
-    this.instructionsModal.classList.remove('hidden');
+    this.nicknameModal.classList.remove('hidden');
   }
   
   startTimer() {

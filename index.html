@@ -30,7 +30,24 @@
       <button id="resetBtn" class="btn btn-secondary">다시 시작</button>
     </div>
 
-    <div id="instructionsModal" class="modal">
+    <div id="nicknameModal" class="modal">
+      <div class="modal-content">
+        <h2>환영합니다! 🎮</h2>
+        <p class="modal-desc">닉네임을 입력해주세요</p>
+        <div class="nickname-input-group">
+          <input 
+            id="nicknameInput" 
+            type="text" 
+            placeholder="닉네임 입력 (최대 10자)" 
+            maxlength="10"
+            autocomplete="off"
+          />
+        </div>
+        <button id="nicknameSubmitBtn" class="btn btn-primary btn-large">다음</button>
+      </div>
+    </div>
+
+    <div id="instructionsModal" class="modal hidden">
       <div class="modal-content">
         <h2>게임 방법</h2>
         <ul class="instructions-list">

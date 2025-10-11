@@ -120,15 +120,38 @@ body {
   overflow: hidden;
   min-height: 35px;
   min-width: 35px;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tile:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow);
+  transform: scale(1.05) translateY(-1px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .tile:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(1px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 8px 8px 0 0;
+  pointer-events: none;
 }
 
 .tile.empty {
@@ -140,12 +163,22 @@ body {
   background: #edf2f7;
 }
 
-/* 색상 타일들 - 파스텔 톤 */
-.tile.color-0 { background: #FFB3BA; }  /* 파스텔 핑크 */
-.tile.color-1 { background: #BAE1FF; }  /* 파스텔 블루 */
-.tile.color-2 { background: #BAFFC9; }  /* 파스텔 민트 */
-.tile.color-3 { background: #D5AAFF; }  /* 파스텔 퍼플 */
-.tile.color-4 { background: #FFCAB0; }  /* 파스텔 코랄 */
+/* 색상 타일들 - 유리 느낌의 파스텔 톤 */
+.tile.color-0 { 
+  background: linear-gradient(135deg, #FFB3BA 0%, #FF9AA2 100%);
+}
+.tile.color-1 { 
+  background: linear-gradient(135deg, #BAE1FF 0%, #A0D3FF 100%);
+}
+.tile.color-2 { 
+  background: linear-gradient(135deg, #BAFFC9 0%, #A0FFB0 100%);
+}
+.tile.color-3 { 
+  background: linear-gradient(135deg, #D5AAFF 0%, #C090FF 100%);
+}
+.tile.color-4 { 
+  background: linear-gradient(135deg, #FFCAB0 0%, #FFB090 100%);
+}
 
 /* 애니메이션 효과 */
 .tile.matched {
@@ -335,6 +368,41 @@ body {
   padding: 15px 40px;
   font-size: 1.1rem;
   width: 100%;
+}
+
+.modal-desc {
+  color: var(--text-secondary);
+  margin: 10px 0 20px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.nickname-input-group {
+  margin-bottom: 25px;
+}
+
+#nicknameInput {
+  width: 100%;
+  padding: 15px 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+#nicknameInput:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  background: var(--bg-secondary);
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+#nicknameInput::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 /* 반응형 디자인 */
