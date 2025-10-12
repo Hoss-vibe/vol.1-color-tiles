@@ -86,7 +86,7 @@ class ColorTilesGame {
     this.startGameBtn.addEventListener('click', () => this.startGame());
     this.resetBtn.addEventListener('click', () => this.resetGame());
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
-    this.nextStageBtn.addEventListener('click', () => this.nextStage());
+    this.nextStageBtn.addEventListener('click', async () => await this.nextStage());
     
     // 아이템 클릭 이벤트
     this.hammerItem.addEventListener('click', () => this.selectItem('hammer'));
@@ -287,7 +287,7 @@ class ColorTilesGame {
     this.totalStagesElement.textContent = this.totalStages;
   }
   
-  nextStage() {
+  async nextStage() {
     if (this.currentStage >= this.totalStages) {
       // 모든 스테이지 클리어
       await this.endGame('allclear');
@@ -315,7 +315,7 @@ class ColorTilesGame {
     this.startGame();
   }
   
-  clearStage() {
+  async clearStage() {
     this.gameActive = false;
     this.stopTimer();
     
@@ -335,19 +335,19 @@ class ColorTilesGame {
     }
   }
   
-  handleTileClick(row, col) {
+  async handleTileClick(row, col) {
     const cell = this.board[row][col];
     
     // 망치 아이템이 선택되어 있으면 망치 사용
     if (this.activeItem === 'hammer') {
-      if (this.useHammerItem(row, col)) {
+      if (await this.useHammerItem(row, col)) {
         return; // 망치 사용 성공
       }
     }
     
     // 빈 공간이 아니면 잘못된 클릭
     if (!cell.isEmpty) {
-      this.handleWrongClick();
+      await this.handleWrongClick();
       return;
     }
 
@@ -415,7 +415,7 @@ class ColorTilesGame {
         }
       }, 300); // 애니메이션 300ms
     } else {
-      this.handleWrongClick();
+      await this.handleWrongClick();
     }
   }
   
@@ -678,7 +678,7 @@ class ColorTilesGame {
     }, 300);
   }
   
-  handleWrongClick() {
+  async handleWrongClick() {
     // 시간 3초 감점
     this.timeLeft = Math.max(0, this.timeLeft - 3);
     this.updateDisplay();
@@ -688,7 +688,7 @@ class ColorTilesGame {
     
     // 시간이 0이 되면 게임 종료
     if (this.timeLeft <= 0) {
-      this.endGame('timeout');
+      await this.endGame('timeout');
       return;
     }
     
@@ -739,7 +739,7 @@ class ColorTilesGame {
     
     // 'clear'인 경우 스테이지 클리어로 처리
     if (reason === 'clear') {
-      this.clearStage();
+      await this.clearStage();
       return;
     }
     
@@ -807,7 +807,7 @@ class ColorTilesGame {
   }
   
   // 망치 아이템 사용 (타일 클릭 시)
-  useHammerItem(row, col) {
+  async useHammerItem(row, col) {
     if (this.hammerCount === 0) return false;
     if (this.board[row][col].isEmpty) return false; // 빈 칸은 제거 불가
     
@@ -826,11 +826,11 @@ class ColorTilesGame {
     
     // 보드가 비어있으면 게임 종료
     if (this.isBoardEmpty()) {
-      this.endGame('clear');
+      await this.endGame('clear');
     } else {
       // 망치가 없고 움직일 수도 없으면 게임 종료
       if (this.hammerCount === 0 && !this.hasValidMoves()) {
-        this.endGame('nomoves');
+        await this.endGame('nomoves');
       }
     }
     
