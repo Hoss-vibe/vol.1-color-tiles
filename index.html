@@ -10,6 +10,16 @@
   <div class="game-container">
     <header class="game-header">
       <h1>Color Tiles</h1>
+      <div class="stage-info">
+        <div class="stage-display">
+          <span class="label">Stage:</span>
+          <span id="currentStage">1</span>/<span id="totalStages">4</span>
+        </div>
+        <div class="total-score-display">
+          <span class="label">Total:</span>
+          <span id="totalScore">0</span>
+        </div>
+      </div>
       <div class="game-info">
         <div class="score">
           <span class="label">점수:</span>
@@ -58,6 +68,18 @@
           <li>최대한 많은 점수를 획득하세요!</li>
         </ul>
         <button id="startGameBtn" class="btn btn-primary btn-large">게임 시작</button>
+      </div>
+    </div>
+
+    <div id="stageClearModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>🎉 Stage Clear!</h2>
+        <p class="stage-clear-message">스테이지를 클리어했습니다!</p>
+        <div class="stage-clear-stats">
+          <p>획득 점수: <span id="stageClearScore">0</span>점</p>
+          <p>총점: <span id="stageClearTotalScore">0</span>점</p>
+        </div>
+        <button id="nextStageBtn" class="btn btn-primary btn-large">다음 스테이지</button>
       </div>
     </div>
 

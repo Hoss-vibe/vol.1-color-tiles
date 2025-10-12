@@ -59,6 +59,41 @@ body {
   background-clip: text;
 }
 
+.stage-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stage-display,
+.total-score-display {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(49, 130, 206, 0.1), rgba(128, 90, 213, 0.1));
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 2px solid rgba(49, 130, 206, 0.3);
+}
+
+.stage-display .label,
+.total-score-display .label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stage-display #currentStage,
+.stage-display #totalStages,
+.total-score-display #totalScore {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+}
+
 .game-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -181,6 +216,12 @@ body {
 }
 .tile.color-4 { 
   background: linear-gradient(135deg, #FFCAB0 0%, #FFB090 100%);
+}
+.tile.color-5 { 
+  background: linear-gradient(135deg, #FFF9B3 0%, #FFEE90 100%);
+}
+.tile.color-6 { 
+  background: linear-gradient(135deg, #E6D5FF 0%, #D0B5FF 100%);
 }
 
 /* 애니메이션 효과 */
@@ -467,6 +508,32 @@ body {
   color: var(--accent-blue);
   font-weight: 700;
   font-size: 1.5rem;
+}
+
+.stage-clear-message {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.stage-clear-stats {
+  background: var(--bg-primary);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.stage-clear-stats p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.stage-clear-stats span {
+  color: var(--accent-blue);
+  font-weight: 700;
+  font-size: 1.3rem;
 }
 
 .instructions-list {

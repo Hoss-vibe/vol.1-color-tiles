@@ -1,21 +1,42 @@
 class ColorTilesGame {
   constructor() {
-    this.boardSize = 8;
-    this.numColors = 5;
+    // 스테이지 설정
+    this.stageConfigs = [
+      { boardSize: 8, numColors: 5, timeLimit: 50 }, // Stage 1
+      { boardSize: 8, numColors: 6, timeLimit: 45 }, // Stage 2
+      { boardSize: 10, numColors: 6, timeLimit: 40 }, // Stage 3
+      { boardSize: 10, numColors: 7, timeLimit: 35 }  // Stage 4
+    ];
+    
+    this.currentStage = 1;
+    this.totalStages = 4;
+    this.totalScore = 0;
+    
+    // 현재 스테이지 설정 적용
+    this.boardSize = this.stageConfigs[0].boardSize;
+    this.numColors = this.stageConfigs[0].numColors;
+    
     this.gameBoard = document.getElementById('gameBoard');
     this.scoreElement = document.getElementById('score');
     this.timerElement = document.getElementById('timer');
+    this.currentStageElement = document.getElementById('currentStage');
+    this.totalStagesElement = document.getElementById('totalStages');
+    this.totalScoreElement = document.getElementById('totalScore');
     this.nicknameModal = document.getElementById('nicknameModal');
     this.nicknameInput = document.getElementById('nicknameInput');
     this.nicknameSubmitBtn = document.getElementById('nicknameSubmitBtn');
     this.startGameBtn = document.getElementById('startGameBtn');
     this.resetBtn = document.getElementById('resetBtn');
     this.playAgainBtn = document.getElementById('playAgainBtn');
+    this.nextStageBtn = document.getElementById('nextStageBtn');
     this.instructionsModal = document.getElementById('instructionsModal');
+    this.stageClearModal = document.getElementById('stageClearModal');
     this.gameOverModal = document.getElementById('gameOverModal');
     this.gameOverTitle = document.getElementById('gameOverTitle');
     this.gameOverMessage = document.getElementById('gameOverMessage');
     this.finalScoreElement = document.getElementById('finalScore');
+    this.stageClearScoreElement = document.getElementById('stageClearScore');
+    this.stageClearTotalScoreElement = document.getElementById('stageClearTotalScore');
     
     this.board = [];
     this.score = 0;
@@ -29,12 +50,15 @@ class ColorTilesGame {
       'color-1', // 파스텔 블루
       'color-2', // 파스텔 민트
       'color-3', // 파스텔 퍼플
-      'color-4'  // 파스텔 코랄
+      'color-4', // 파스텔 코랄
+      'color-5', // 파스텔 옐로우
+      'color-6'  // 파스텔 라벤더
     ];
     
     this.initializeEventListeners();
     this.initializeBoard();
     this.loadNickname();
+    this.updateStageDisplay();
   }
   
   initializeEventListeners() {
@@ -47,6 +71,7 @@ class ColorTilesGame {
     this.startGameBtn.addEventListener('click', () => this.startGame());
     this.resetBtn.addEventListener('click', () => this.resetGame());
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
+    this.nextStageBtn.addEventListener('click', () => this.nextStage());
     
     this.gameBoard.addEventListener('click', (e) => {
       if (!this.gameActive) return;
@@ -65,10 +90,15 @@ class ColorTilesGame {
     this.gameBoard.innerHTML = '';
     this.board = [];
     
-    // 전체 타일 수 계산 (8x8 보드, 40개 타일 = 62.5%)
-    const totalTiles = 40; // 5색상 x 8개씩 = 40개
-    const boardCells = this.boardSize * this.boardSize; // 64개
-    const emptySpaces = boardCells - totalTiles; // 24개 빈 공간
+    // 게임 보드의 grid 크기 동적 설정
+    this.gameBoard.style.gridTemplateColumns = `repeat(${this.boardSize}, 1fr)`;
+    this.gameBoard.style.gridTemplateRows = `repeat(${this.boardSize}, 1fr)`;
+    
+    // 전체 타일 수 계산 (약 62.5%의 타일 배치)
+    const tilesPerColor = Math.floor(this.boardSize); // 각 색상당 타일 수
+    const totalTiles = this.numColors * tilesPerColor;
+    const boardCells = this.boardSize * this.boardSize;
+    const emptySpaces = boardCells - totalTiles;
     
     // 모든 셀을 빈 공간으로 초기화
     for (let row = 0; row < this.boardSize; row++) {
@@ -81,8 +111,7 @@ class ColorTilesGame {
       }
     }
     
-    // 각 색상별로 동일한 개수의 타일을 생성 (5색상 x 8개 = 40개)
-    const tilesPerColor = totalTiles / this.numColors; // 40 / 5 = 8개씩
+    // 각 색상별로 동일한 개수의 타일을 생성
     const tilesToPlace = [];
     
     for (let color = 0; color < this.numColors; color++) {
@@ -177,7 +206,8 @@ class ColorTilesGame {
   startGame() {
     this.gameActive = true;
     this.score = 0;
-    this.timeLeft = 50;
+    const stageConfig = this.stageConfigs[this.currentStage - 1];
+    this.timeLeft = stageConfig.timeLimit;
     this.updateDisplay();
     this.instructionsModal.classList.add('hidden');
     this.startTimer();
@@ -185,12 +215,18 @@ class ColorTilesGame {
   
   resetGame() {
     this.gameActive = false;
+    this.currentStage = 1;
     this.score = 0;
-    this.timeLeft = 50;
+    this.totalScore = 0;
+    this.boardSize = this.stageConfigs[0].boardSize;
+    this.numColors = this.stageConfigs[0].numColors;
+    this.timeLeft = this.stageConfigs[0].timeLimit;
     this.stopTimer();
     this.updateDisplay();
+    this.updateStageDisplay();
     this.initializeBoard();
     this.gameOverModal.classList.add('hidden');
+    this.stageClearModal.classList.add('hidden');
     this.nicknameModal.classList.remove('hidden');
   }
   
@@ -215,6 +251,53 @@ class ColorTilesGame {
   updateDisplay() {
     this.scoreElement.textContent = this.score;
     this.timerElement.textContent = this.timeLeft;
+    this.totalScoreElement.textContent = this.totalScore;
+  }
+  
+  updateStageDisplay() {
+    this.currentStageElement.textContent = this.currentStage;
+    this.totalStagesElement.textContent = this.totalStages;
+  }
+  
+  nextStage() {
+    if (this.currentStage >= this.totalStages) {
+      // 모든 스테이지 클리어
+      this.endGame('allclear');
+      return;
+    }
+    
+    this.currentStage++;
+    const stageConfig = this.stageConfigs[this.currentStage - 1];
+    this.boardSize = stageConfig.boardSize;
+    this.numColors = stageConfig.numColors;
+    this.timeLeft = stageConfig.timeLimit;
+    this.score = 0;
+    
+    this.stageClearModal.classList.add('hidden');
+    this.updateStageDisplay();
+    this.updateDisplay();
+    this.initializeBoard();
+    this.startGame();
+  }
+  
+  clearStage() {
+    this.gameActive = false;
+    this.stopTimer();
+    
+    // 총점에 현재 점수 추가
+    this.totalScore += this.score;
+    
+    // 스테이지 클리어 모달 표시
+    this.stageClearScoreElement.textContent = this.score;
+    this.stageClearTotalScoreElement.textContent = this.totalScore;
+    
+    if (this.currentStage >= this.totalStages) {
+      // 마지막 스테이지 클리어 - 게임 완료
+      this.endGame('allclear');
+    } else {
+      // 다음 스테이지로
+      this.stageClearModal.classList.remove('hidden');
+    }
   }
   
   handleTileClick(row, col) {
@@ -262,20 +345,21 @@ class ColorTilesGame {
     });
     
     if (allMatchedTiles.length > 0) {
-      // 점수 추가 (타일은 아직 삭제하지 않음)
+      // 점수 추가
       this.score += allMatchedTiles.length;
       this.updateDisplay();
+      
+      // 매칭된 타일들을 즉시 isEmpty로 변경 (중복 클릭 방지)
+      allMatchedTiles.forEach(({row: r, col: c}) => {
+        this.board[r][c].isEmpty = true;
+        this.board[r][c].color = null;
+      });
       
       // 매칭 애니메이션과 연결선 표시
       this.animateMatchedTilesWithConnections(allMatchedTiles, row, col);
       
-      // 애니메이션이 끝난 후 타일 삭제 및 화면 업데이트
+      // 애니메이션이 끝난 후 화면 업데이트
       setTimeout(() => {
-        allMatchedTiles.forEach(({row: r, col: c}) => {
-          this.board[r][c].isEmpty = true;
-          this.board[r][c].color = null;
-        });
-        
         this.renderBoard();
         
         // 보드가 비어있으면 게임 종료
@@ -610,20 +694,30 @@ class ColorTilesGame {
   endGame(reason = 'timeout') {
     this.gameActive = false;
     this.stopTimer();
-    this.finalScoreElement.textContent = this.score;
+    
+    // 'clear'인 경우 스테이지 클리어로 처리
+    if (reason === 'clear') {
+      this.clearStage();
+      return;
+    }
+    
+    // 총점에 현재 점수 추가
+    this.totalScore += this.score;
+    this.finalScoreElement.textContent = this.totalScore;
     
     // 종료 사유에 따라 메시지 변경
     if (reason === 'timeout') {
       this.gameOverTitle.textContent = '시간 종료!';
-      this.gameOverMessage.textContent = '50초가 모두 지나갔습니다.';
-    } else if (reason === 'clear') {
-      this.gameOverTitle.textContent = '완벽합니다! 🎉';
-      this.gameOverMessage.textContent = '모든 타일을 제거했습니다!';
+      this.gameOverMessage.textContent = '시간이 모두 지나갔습니다.';
+    } else if (reason === 'allclear') {
+      this.gameOverTitle.textContent = '🏆 모든 스테이지 클리어!';
+      this.gameOverMessage.textContent = '축하합니다! 모든 스테이지를 완료했습니다!';
     } else if (reason === 'nomoves') {
       this.gameOverTitle.textContent = '게임 종료!';
       this.gameOverMessage.textContent = '더 이상 움직일 수 없습니다.';
     }
     
+    this.stageClearModal.classList.add('hidden');
     this.gameOverModal.classList.remove('hidden');
   }
 }
