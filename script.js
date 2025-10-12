@@ -259,7 +259,7 @@ class ColorTilesGame {
   }
   
   startTimer() {
-    this.timerInterval = setInterval(() => {
+    this.timerInterval = setInterval(async () => {
       this.timeLeft--;
       this.updateDisplay();
       
