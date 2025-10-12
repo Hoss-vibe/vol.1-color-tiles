@@ -944,7 +944,6 @@ class ColorTilesGame {
   async saveToLeaderboard() {
     try {
       if (!window.db) {
-        console.log('Firebase가 아직 로드되지 않았습니다. LocalStorage를 사용합니다.');
         this.saveToLeaderboardLocal();
         return;
       }
@@ -959,7 +958,6 @@ class ColorTilesGame {
       };
       
       await window.firebaseAddDoc(leaderboardCollection, newEntry);
-      console.log('Firebase에 점수가 저장되었습니다!');
     } catch (error) {
       console.error('Firebase 저장 실패:', error);
       // Firebase 실패 시 LocalStorage로 폴백
@@ -992,7 +990,6 @@ class ColorTilesGame {
   async getLeaderboard() {
     try {
       if (!window.db) {
-        console.log('Firebase가 아직 로드되지 않았습니다. LocalStorage를 사용합니다.');
         return this.getLeaderboardLocal();
       }
 
@@ -1016,7 +1013,6 @@ class ColorTilesGame {
         });
       });
       
-      console.log('Firebase에서 리더보드를 불러왔습니다!');
       return leaderboard;
     } catch (error) {
       console.error('Firebase 불러오기 실패:', error);

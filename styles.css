@@ -33,6 +33,13 @@ body {
   padding: 10px;
 }
 
+/* 웹에서도 모바일 사이즈로 고정 */
+@media (min-width: 768px) {
+  body {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #e6f3ff 100%);
+  }
+}
+
 .game-container {
   background: var(--bg-secondary);
   border-radius: 20px;
@@ -41,6 +48,21 @@ body {
   max-width: 95vw;
   width: 100%;
   overflow: visible;
+}
+
+/* 웹에서도 모바일 사이즈로 고정 */
+@media (min-width: 768px) {
+  .game-container {
+    max-width: 400px;
+    width: 400px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .game-board {
+    max-width: 360px;
+    width: 360px;
+    margin: 0 auto;
+  }
 }
 
 .game-header {
