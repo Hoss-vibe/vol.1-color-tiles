@@ -401,7 +401,7 @@ class ColorTilesGame {
       this.animateMatchedTilesWithConnections(allMatchedTiles, row, col);
       
       // 애니메이션이 끝난 후 화면 업데이트
-      setTimeout(() => {
+      setTimeout(async () => {
         this.renderBoard();
         
         // 보드가 비어있으면 게임 종료
