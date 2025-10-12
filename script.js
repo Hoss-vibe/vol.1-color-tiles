@@ -264,7 +264,7 @@ class ColorTilesGame {
       this.updateDisplay();
       
       if (this.timeLeft <= 0) {
-        this.endGame('timeout');
+        await this.endGame('timeout');
       }
     }, 1000);
   }
@@ -290,7 +290,7 @@ class ColorTilesGame {
   nextStage() {
     if (this.currentStage >= this.totalStages) {
       // 모든 스테이지 클리어
-      this.endGame('allclear');
+      await this.endGame('allclear');
       return;
     }
     
@@ -328,7 +328,7 @@ class ColorTilesGame {
     
     if (this.currentStage >= this.totalStages) {
       // 마지막 스테이지 클리어 - 게임 완료
-      this.endGame('allclear');
+      await this.endGame('allclear');
     } else {
       // 다음 스테이지로
       this.stageClearModal.classList.remove('hidden');
@@ -406,11 +406,11 @@ class ColorTilesGame {
         
         // 보드가 비어있으면 게임 종료
         if (this.isBoardEmpty()) {
-          this.endGame('clear');
+          await this.endGame('clear');
         } else {
           // 망치가 없고 움직일 수도 없으면 게임 종료
           if (this.hammerCount === 0 && !this.hasValidMoves()) {
-            this.endGame('nomoves');
+            await this.endGame('nomoves');
           }
         }
       }, 300); // 애니메이션 300ms
@@ -733,7 +733,7 @@ class ColorTilesGame {
     }, 1000);
   }
   
-  endGame(reason = 'timeout') {
+  async endGame(reason = 'timeout') {
     this.gameActive = false;
     this.stopTimer();
     
@@ -746,6 +746,12 @@ class ColorTilesGame {
     // 총점에 현재 점수 추가
     this.totalScore += this.score;
     this.finalScoreElement.textContent = this.totalScore;
+    
+    // 리더보드에 점수 저장
+    await this.saveToLeaderboard();
+    
+    // 리더보드 표시
+    await this.displayLeaderboard();
     
     // 종료 사유에 따라 메시지 변경
     if (reason === 'timeout') {
@@ -821,6 +827,11 @@ class ColorTilesGame {
     // 보드가 비어있으면 게임 종료
     if (this.isBoardEmpty()) {
       this.endGame('clear');
+    } else {
+      // 망치가 없고 움직일 수도 없으면 게임 종료
+      if (this.hammerCount === 0 && !this.hasValidMoves()) {
+        this.endGame('nomoves');
+      }
     }
     
     return true;
@@ -924,6 +935,171 @@ class ColorTilesGame {
         bonusText.parentNode.removeChild(bonusText);
       }
     }, 1000);
+  }
+  
+  // 리더보드에 점수 저장 (Firebase)
+  async saveToLeaderboard() {
+    try {
+      if (!window.db) {
+        console.log('Firebase가 아직 로드되지 않았습니다. LocalStorage를 사용합니다.');
+        this.saveToLeaderboardLocal();
+        return;
+      }
+
+      const leaderboardCollection = window.firebaseCollection(window.db, 'leaderboard');
+      
+      const newEntry = {
+        nickname: this.nickname,
+        score: this.totalScore,
+        date: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+      
+      await window.firebaseAddDoc(leaderboardCollection, newEntry);
+      console.log('Firebase에 점수가 저장되었습니다!');
+    } catch (error) {
+      console.error('Firebase 저장 실패:', error);
+      // Firebase 실패 시 LocalStorage로 폴백
+      this.saveToLeaderboardLocal();
+    }
+  }
+
+  // LocalStorage 백업 저장
+  saveToLeaderboardLocal() {
+    const leaderboard = this.getLeaderboardLocal();
+    
+    const newEntry = {
+      nickname: this.nickname,
+      score: this.totalScore,
+      date: new Date().toLocaleDateString('ko-KR')
+    };
+    
+    leaderboard.push(newEntry);
+    
+    // 점수 내림차순 정렬
+    leaderboard.sort((a, b) => b.score - a.score);
+    
+    // 상위 50개만 유지
+    const trimmedLeaderboard = leaderboard.slice(0, 50);
+    
+    localStorage.setItem('colorTilesLeaderboard', JSON.stringify(trimmedLeaderboard));
+  }
+  
+  // 리더보드 불러오기 (Firebase 우선, LocalStorage 폴백)
+  async getLeaderboard() {
+    try {
+      if (!window.db) {
+        console.log('Firebase가 아직 로드되지 않았습니다. LocalStorage를 사용합니다.');
+        return this.getLeaderboardLocal();
+      }
+
+      const leaderboardCollection = window.firebaseCollection(window.db, 'leaderboard');
+      const q = window.firebaseQuery(
+        leaderboardCollection, 
+        window.firebaseOrderBy('score', 'desc'),
+        window.firebaseLimit(50)
+      );
+      
+      const querySnapshot = await window.firebaseGetDocs(q);
+      const leaderboard = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        leaderboard.push({
+          id: doc.id,
+          nickname: data.nickname,
+          score: data.score,
+          date: new Date(data.date).toLocaleDateString('ko-KR')
+        });
+      });
+      
+      console.log('Firebase에서 리더보드를 불러왔습니다!');
+      return leaderboard;
+    } catch (error) {
+      console.error('Firebase 불러오기 실패:', error);
+      // Firebase 실패 시 LocalStorage로 폴백
+      return this.getLeaderboardLocal();
+    }
+  }
+
+  // LocalStorage 백업 불러오기
+  getLeaderboardLocal() {
+    const saved = localStorage.getItem('colorTilesLeaderboard');
+    return saved ? JSON.parse(saved) : [];
+  }
+  
+  // 리더보드 표시
+  async displayLeaderboard() {
+    const leaderboard = await this.getLeaderboard();
+    const leaderboardList = document.getElementById('leaderboardList');
+    
+    // 내 순위 찾기
+    const myRank = leaderboard.findIndex(entry => 
+      entry.nickname === this.nickname && entry.score === this.totalScore
+    ) + 1;
+    
+    leaderboardList.innerHTML = '';
+    
+    // 표시할 항목 결정
+    let top3Items = [];
+    let myAreaItems = [];
+    let showDivider = false;
+    
+    if (myRank <= 3 || myRank === 0) {
+      // Top 3 안이거나 기록 없으면 Top 3만 표시
+      top3Items = leaderboard.slice(0, 3);
+    } else {
+      // Top 3 + 내 주변 표시
+      top3Items = leaderboard.slice(0, 3);
+      
+      // 내 위 1명, 나, 내 아래 1명
+      const startIdx = Math.max(3, myRank - 2); // Top 3 다음부터
+      const endIdx = Math.min(leaderboard.length, myRank + 1);
+      myAreaItems = leaderboard.slice(startIdx, endIdx);
+      
+      // 4등이 아닌 경우 (순위가 떨어져 있으면) 구분선 표시
+      if (startIdx > 3) {
+        showDivider = true;
+      }
+    }
+    
+    // Top 3 렌더링
+    top3Items.forEach((entry) => {
+      const actualRank = leaderboard.indexOf(entry) + 1;
+      const isMe = (actualRank === myRank);
+      const medal = actualRank === 1 ? '👑' : actualRank === 2 ? '🥈' : actualRank === 3 ? '🥉' : actualRank.toString();
+      
+      const item = document.createElement('div');
+      item.className = `leaderboard-item${isMe ? ' is-me' : ''}`;
+      item.innerHTML = `
+        <span class="rank">${medal}</span>
+        <span class="nickname">${entry.nickname}${isMe ? ' ⭐' : ''}</span>
+        <span class="score">${entry.score}점</span>
+      `;
+      leaderboardList.appendChild(item);
+    });
+    
+    // 구분선 추가
+    if (showDivider) {
+      const divider = document.createElement('div');
+      divider.className = 'leaderboard-divider';
+      leaderboardList.appendChild(divider);
+    }
+    
+    // 내 주변 렌더링
+    myAreaItems.forEach((entry) => {
+      const actualRank = leaderboard.indexOf(entry) + 1;
+      const isMe = (actualRank === myRank);
+      
+      const item = document.createElement('div');
+      item.className = `leaderboard-item${isMe ? ' is-me' : ''}`;
+      item.innerHTML = `
+        <span class="rank">${actualRank}</span>
+        <span class="nickname">${entry.nickname}${isMe ? ' ⭐' : ''}</span>
+        <span class="score">${entry.score}점</span>
+      `;
+      leaderboardList.appendChild(item);
+    });
   }
 }
 
