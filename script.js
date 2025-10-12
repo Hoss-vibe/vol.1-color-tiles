@@ -38,12 +38,26 @@ class ColorTilesGame {
     this.stageClearScoreElement = document.getElementById('stageClearScore');
     this.stageClearTotalScoreElement = document.getElementById('stageClearTotalScore');
     
+    // 아이템 요소
+    this.hammerItem = document.getElementById('hammerItem');
+    this.shuffleItem = document.getElementById('shuffleItem');
+    this.timeItem = document.getElementById('timeItem');
+    this.hammerCountElement = document.getElementById('hammerCount');
+    this.shuffleCountElement = document.getElementById('shuffleCount');
+    this.timeCountElement = document.getElementById('timeCount');
+    
     this.board = [];
     this.score = 0;
     this.timeLeft = 50;
     this.gameActive = false;
     this.timerInterval = null;
     this.nickname = '';
+    
+    // 아이템 개수 (스테이지당 1개씩)
+    this.hammerCount = 1;
+    this.shuffleCount = 1;
+    this.timeCount = 1;
+    this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
       'color-0', // 파스텔 핑크
@@ -59,6 +73,7 @@ class ColorTilesGame {
     this.initializeBoard();
     this.loadNickname();
     this.updateStageDisplay();
+    this.updateItemDisplay();
   }
   
   initializeEventListeners() {
@@ -72,6 +87,11 @@ class ColorTilesGame {
     this.resetBtn.addEventListener('click', () => this.resetGame());
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
     this.nextStageBtn.addEventListener('click', () => this.nextStage());
+    
+    // 아이템 클릭 이벤트
+    this.hammerItem.addEventListener('click', () => this.selectItem('hammer'));
+    this.shuffleItem.addEventListener('click', () => this.useShuffleItem());
+    this.timeItem.addEventListener('click', () => this.useTimeItem());
     
     this.gameBoard.addEventListener('click', (e) => {
       if (!this.gameActive) return;
@@ -208,7 +228,15 @@ class ColorTilesGame {
     this.score = 0;
     const stageConfig = this.stageConfigs[this.currentStage - 1];
     this.timeLeft = stageConfig.timeLimit;
+    
+    // 스테이지 시작 시 아이템 리셋
+    this.hammerCount = 1;
+    this.shuffleCount = 1;
+    this.timeCount = 1;
+    this.activeItem = null;
+    
     this.updateDisplay();
+    this.updateItemDisplay();
     this.instructionsModal.classList.add('hidden');
     this.startTimer();
   }
@@ -273,9 +301,16 @@ class ColorTilesGame {
     this.timeLeft = stageConfig.timeLimit;
     this.score = 0;
     
+    // 다음 스테이지 아이템 리셋
+    this.hammerCount = 1;
+    this.shuffleCount = 1;
+    this.timeCount = 1;
+    this.activeItem = null;
+    
     this.stageClearModal.classList.add('hidden');
     this.updateStageDisplay();
     this.updateDisplay();
+    this.updateItemDisplay();
     this.initializeBoard();
     this.startGame();
   }
@@ -302,6 +337,13 @@ class ColorTilesGame {
   
   handleTileClick(row, col) {
     const cell = this.board[row][col];
+    
+    // 망치 아이템이 선택되어 있으면 망치 사용
+    if (this.activeItem === 'hammer') {
+      if (this.useHammerItem(row, col)) {
+        return; // 망치 사용 성공
+      }
+    }
     
     // 빈 공간이 아니면 잘못된 클릭
     if (!cell.isEmpty) {
@@ -366,8 +408,8 @@ class ColorTilesGame {
         if (this.isBoardEmpty()) {
           this.endGame('clear');
         } else {
-          // 더 이상 움직일 수 없는지 확인
-          if (!this.hasValidMoves()) {
+          // 망치가 없고 움직일 수도 없으면 게임 종료
+          if (this.hammerCount === 0 && !this.hasValidMoves()) {
             this.endGame('nomoves');
           }
         }
@@ -719,6 +761,169 @@ class ColorTilesGame {
     
     this.stageClearModal.classList.add('hidden');
     this.gameOverModal.classList.remove('hidden');
+  }
+  
+  // 아이템 표시 업데이트
+  updateItemDisplay() {
+    this.hammerCountElement.textContent = this.hammerCount;
+    this.shuffleCountElement.textContent = this.shuffleCount;
+    this.timeCountElement.textContent = this.timeCount;
+    
+    // 개수가 0이면 disabled 클래스 추가
+    this.hammerItem.classList.toggle('disabled', this.hammerCount === 0);
+    this.shuffleItem.classList.toggle('disabled', this.shuffleCount === 0);
+    this.timeItem.classList.toggle('disabled', this.timeCount === 0);
+    
+    // 개수가 0이면 배지 스타일 변경
+    this.hammerCountElement.classList.toggle('zero', this.hammerCount === 0);
+    this.shuffleCountElement.classList.toggle('zero', this.shuffleCount === 0);
+    this.timeCountElement.classList.toggle('zero', this.timeCount === 0);
+    
+    // active 상태 업데이트
+    this.hammerItem.classList.toggle('active', this.activeItem === 'hammer');
+    this.shuffleItem.classList.remove('active');
+    this.timeItem.classList.remove('active');
+  }
+  
+  // 망치 아이템 선택
+  selectItem(itemType) {
+    if (!this.gameActive) return;
+    if (itemType === 'hammer' && this.hammerCount === 0) return;
+    
+    if (this.activeItem === itemType) {
+      // 이미 선택된 아이템을 다시 클릭하면 취소
+      this.activeItem = null;
+    } else {
+      this.activeItem = itemType;
+    }
+    
+    this.updateItemDisplay();
+  }
+  
+  // 망치 아이템 사용 (타일 클릭 시)
+  useHammerItem(row, col) {
+    if (this.hammerCount === 0) return false;
+    if (this.board[row][col].isEmpty) return false; // 빈 칸은 제거 불가
+    
+    // 타일 제거
+    this.score += 1;
+    this.board[row][col].isEmpty = true;
+    this.board[row][col].color = null;
+    
+    // 망치 개수 감소
+    this.hammerCount--;
+    this.activeItem = null;
+    
+    this.updateDisplay();
+    this.updateItemDisplay();
+    this.renderBoard();
+    
+    // 보드가 비어있으면 게임 종료
+    if (this.isBoardEmpty()) {
+      this.endGame('clear');
+    }
+    
+    return true;
+  }
+  
+  // 리셋(셔플) 아이템 사용
+  useShuffleItem() {
+    if (!this.gameActive) return;
+    if (this.shuffleCount === 0) return;
+    
+    // 현재 보드의 모든 타일 수집
+    const tiles = [];
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        if (!this.board[row][col].isEmpty) {
+          tiles.push(this.board[row][col].color);
+        }
+      }
+    }
+    
+    // 타일 섞기 (Fisher-Yates shuffle)
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+    
+    // 보드 초기화
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        this.board[row][col].isEmpty = true;
+        this.board[row][col].color = null;
+      }
+    }
+    
+    // 섞은 타일들을 랜덤 위치에 재배치
+    let tileIndex = 0;
+    const positions = [];
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        positions.push({ row, col });
+      }
+    }
+    
+    // 위치도 섞기
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    
+    // 타일 배치
+    tiles.forEach((color, index) => {
+      const pos = positions[index];
+      this.board[pos.row][pos.col].color = color;
+      this.board[pos.row][pos.col].isEmpty = false;
+    });
+    
+    this.shuffleCount--;
+    this.updateItemDisplay();
+    this.renderBoard();
+  }
+  
+  // 시계 아이템 사용
+  useTimeItem() {
+    if (!this.gameActive) return;
+    if (this.timeCount === 0) return;
+    
+    this.timeLeft += 5;
+    this.timeCount--;
+    
+    this.updateDisplay();
+    this.updateItemDisplay();
+    
+    // +5초 애니메이션 표시
+    this.showTimeBonus();
+  }
+  
+  showTimeBonus() {
+    const timerElement = document.querySelector('.timer');
+    if (!timerElement) return;
+    
+    const timerRect = timerElement.getBoundingClientRect();
+    
+    const bonusText = document.createElement('div');
+    bonusText.className = 'time-bonus';
+    bonusText.textContent = '+5초';
+    bonusText.style.position = 'fixed';
+    bonusText.style.left = timerRect.left + timerRect.width / 2 + 'px';
+    bonusText.style.top = timerRect.top + 'px';
+    bonusText.style.transform = 'translateX(-50%)';
+    bonusText.style.fontSize = '1.5rem';
+    bonusText.style.fontWeight = '700';
+    bonusText.style.color = '#38a169';
+    bonusText.style.pointerEvents = 'none';
+    bonusText.style.zIndex = '1000';
+    bonusText.style.animation = 'bonusFloat 1s ease-out forwards';
+    
+    document.body.appendChild(bonusText);
+    
+    setTimeout(() => {
+      if (bonusText.parentNode) {
+        bonusText.parentNode.removeChild(bonusText);
+      }
+    }, 1000);
   }
 }
 
