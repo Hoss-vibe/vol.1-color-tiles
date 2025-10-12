@@ -294,6 +294,9 @@ class ColorTilesGame {
       return;
     }
     
+    // 이전 타이머 정리
+    this.stopTimer();
+    
     this.currentStage++;
     const stageConfig = this.stageConfigs[this.currentStage - 1];
     this.boardSize = stageConfig.boardSize;
