@@ -50,6 +50,16 @@ body {
   overflow: visible;
 }
 
+/* 더블 클릭 확대 방지 */
+* {
+  touch-action: manipulation;
+}
+
+/* 게임 보드에서 확대 방지 */
+.game-board {
+  touch-action: manipulation;
+}
+
 /* 웹에서도 모바일 사이즈로 고정 */
 @media (min-width: 768px) {
   .game-container {

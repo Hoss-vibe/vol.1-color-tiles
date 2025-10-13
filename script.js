@@ -12,6 +12,11 @@ class ColorTilesGame {
     this.totalStages = 4;
     this.totalScore = 0;
     
+    // 더블 클릭 확대 방지
+    document.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+    });
+    
     // 현재 스테이지 설정 적용
     this.boardSize = this.stageConfigs[0].boardSize;
     this.numColors = this.stageConfigs[0].numColors;
@@ -1171,27 +1176,31 @@ class ColorTilesGame {
     
     leaderboardList.innerHTML = '';
     
-    // 표시할 항목 결정
-    let top3Items = [];
+    // 새로운 구조: Top 3 + 점선 + 내 순위 (최대 4개)
+    let top3Items = working.slice(0, 3);
     let myAreaItems = [];
     let showDivider = false;
     
-    if (myRank <= 3 || myRank === 0) {
-      // Top 3 안이거나 기록이 없으면 Top 3만 표시
-      top3Items = working.slice(0, 3);
-    } else {
-      // Top 3 + 내 주변 표시
-      top3Items = working.slice(0, 3);
-
-      // 내 주변: 위 1명, 나, 아래 1명 → slice의 끝 인덱스는 "제외"
-      // myRank는 1-based, 배열 인덱스는 0-based이므로
-      // [myRank-1, myRank, myRank+1] 랭크를 얻으려면 인덱스 [myRank-2, myRank+1) 범위를 사용
-      const startIdx = Math.max(3, myRank - 2); // Top3 다음부터 시작 보장
-      const endIdx = Math.min(working.length, myRank + 1); // myRank+1까지 포함되도록 exclusive end
-      myAreaItems = working.slice(startIdx, endIdx);
-
-      // Top3 바로 다음(4등)부터가 아니면 구분선 표시
-      if (startIdx > 3) {
+    if (myRank > 3 && myRank !== 0) {
+      // 내 순위가 4등 이하인 경우: 내 점수만 표시
+      const myEntry = working.find(entry => 
+        entry.playerId === this.playerId && (
+          this.leaderboardMode === 'total' ? true : entry.score === this.totalScore
+        )
+      );
+      if (myEntry) {
+        myAreaItems = [myEntry];
+        showDivider = true;
+      }
+    } else if (myRank <= 3 && myRank !== 0) {
+      // 내가 Top 3 안에 있으면 4번째로 내 점수 한 번 더 표시
+      const myEntry = working.find(entry => 
+        entry.playerId === this.playerId && (
+          this.leaderboardMode === 'total' ? true : entry.score === this.totalScore
+        )
+      );
+      if (myEntry) {
+        myAreaItems = [myEntry];
         showDivider = true;
       }
     }
