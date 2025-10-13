@@ -943,11 +943,6 @@ class ColorTilesGame {
   // 리더보드에 점수 저장 (Firebase)
   async saveToLeaderboard() {
     try {
-      if (!window.db) {
-        this.saveToLeaderboardLocal();
-        return;
-      }
-
       const leaderboardCollection = window.firebaseCollection(window.db, 'leaderboard');
       
       const newEntry = {
@@ -960,44 +955,19 @@ class ColorTilesGame {
       await window.firebaseAddDoc(leaderboardCollection, newEntry);
     } catch (error) {
       console.error('Firebase 저장 실패:', error);
-      // Firebase 실패 시 LocalStorage로 폴백
-      this.saveToLeaderboardLocal();
     }
   }
 
-  // LocalStorage 백업 저장
-  saveToLeaderboardLocal() {
-    const leaderboard = this.getLeaderboardLocal();
-    
-    const newEntry = {
-      nickname: this.nickname,
-      score: this.totalScore,
-      date: new Date().toLocaleDateString('ko-KR')
-    };
-    
-    leaderboard.push(newEntry);
-    
-    // 점수 내림차순 정렬
-    leaderboard.sort((a, b) => b.score - a.score);
-    
-    // 상위 50개만 유지
-    const trimmedLeaderboard = leaderboard.slice(0, 50);
-    
-    localStorage.setItem('colorTilesLeaderboard', JSON.stringify(trimmedLeaderboard));
-  }
+  // LocalStorage 백업 로직 제거 (Firebase only)
   
   // 리더보드 불러오기 (Firebase 우선, LocalStorage 폴백)
   async getLeaderboard() {
     try {
-      if (!window.db) {
-        return this.getLeaderboardLocal();
-      }
-
       const leaderboardCollection = window.firebaseCollection(window.db, 'leaderboard');
       const q = window.firebaseQuery(
         leaderboardCollection, 
         window.firebaseOrderBy('score', 'desc'),
-        window.firebaseLimit(50)
+        window.firebaseLimit(1000)
       );
       
       const querySnapshot = await window.firebaseGetDocs(q);
@@ -1009,22 +979,16 @@ class ColorTilesGame {
           id: doc.id,
           nickname: data.nickname,
           score: data.score,
-          date: new Date(data.date).toLocaleDateString('ko-KR')
+          date: new Date(data.date).toLocaleDateString('ko-KR'),
+          timestamp: data.timestamp
         });
       });
       
       return leaderboard;
     } catch (error) {
       console.error('Firebase 불러오기 실패:', error);
-      // Firebase 실패 시 LocalStorage로 폴백
-      return this.getLeaderboardLocal();
+      return [];
     }
-  }
-
-  // LocalStorage 백업 불러오기
-  getLeaderboardLocal() {
-    const saved = localStorage.getItem('colorTilesLeaderboard');
-    return saved ? JSON.parse(saved) : [];
   }
   
   // 리더보드 표시
@@ -1045,18 +1009,18 @@ class ColorTilesGame {
     let showDivider = false;
     
     if (myRank <= 3 || myRank === 0) {
-      // Top 3 안이거나 기록 없으면 Top 3만 표시
+      // Top 3 안이거나 기록이 없으면 Top 3만 표시
       top3Items = leaderboard.slice(0, 3);
     } else {
       // Top 3 + 내 주변 표시
       top3Items = leaderboard.slice(0, 3);
-      
-      // 내 위 1명, 나, 내 아래 1명
-      const startIdx = Math.max(3, myRank - 2); // Top 3 다음부터
-      const endIdx = Math.min(leaderboard.length, myRank + 1);
+
+      // 내 주변: 위 1명, 나, 아래 1명 → slice의 끝 인덱스는 "제외"이므로 +2
+      const startIdx = Math.max(3, myRank - 1); // Top3 다음부터 시작 보장
+      const endIdx = Math.min(leaderboard.length, myRank + 2); // myRank+1까지 포함
       myAreaItems = leaderboard.slice(startIdx, endIdx);
-      
-      // 4등이 아닌 경우 (순위가 떨어져 있으면) 구분선 표시
+
+      // Top3 바로 다음(4등)부터가 아니면 구분선 표시
       if (startIdx > 3) {
         showDivider = true;
       }
