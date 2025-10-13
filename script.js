@@ -1,15 +1,15 @@
 class ColorTilesGame {
   constructor() {
-    // 스테이지 설정 (8개로 확장, 모든 스테이지 50초 고정, 최대 12x12)
+    // 스테이지 설정 (8개로 확장, 모든 스테이지 50초 고정, 모바일 최적화)
     this.stageConfigs = [
       { boardSize: 8, numColors: 5, timeLimit: 50 },   // Stage 1
       { boardSize: 8, numColors: 6, timeLimit: 50 },   // Stage 2
-      { boardSize: 10, numColors: 6, timeLimit: 50 },  // Stage 3
-      { boardSize: 10, numColors: 7, timeLimit: 50 },  // Stage 4
-      { boardSize: 10, numColors: 8, timeLimit: 50 },  // Stage 5
-      { boardSize: 12, numColors: 8, timeLimit: 50 },  // Stage 6
-      { boardSize: 12, numColors: 9, timeLimit: 50 },  // Stage 7
-      { boardSize: 12, numColors: 10, timeLimit: 50 }  // Stage 8 (최대 12x12)
+      { boardSize: 8, numColors: 7, timeLimit: 50 },   // Stage 3
+      { boardSize: 8, numColors: 8, timeLimit: 50 },   // Stage 4
+      { boardSize: 9, numColors: 8, timeLimit: 50 },   // Stage 5
+      { boardSize: 9, numColors: 9, timeLimit: 50 },   // Stage 6
+      { boardSize: 10, numColors: 9, timeLimit: 50 },  // Stage 7
+      { boardSize: 10, numColors: 10, timeLimit: 50 }  // Stage 8 (최대 10x10)
     ];
     
     this.currentStage = 1; // 기본값으로 1스테이지로 시작
@@ -62,9 +62,9 @@ class ColorTilesGame {
     this.timerInterval = null;
     this.nickname = '';
     
-    // 아이템 개수 (테스트용으로 시간/리셋 아이템 20개씩 추가)
+    // 아이템 개수 (테스트용으로 모든 아이템 충분히 지급)
     // 아이템은 게임 전체에서 고정 수량으로 지급
-    this.hammerCount = 4;
+    this.hammerCount = 10; // 테스트용으로 10개로 증가
     this.shuffleCount = 20; // 테스트용으로 20개로 증가
     this.timeCount = 20; // 테스트용으로 20개로 증가
     this.activeItem = null; // 현재 선택된 아이템
@@ -396,8 +396,8 @@ class ColorTilesGame {
     this.boardSize = this.stageConfigs[0].boardSize;
     this.numColors = this.stageConfigs[0].numColors;
     this.timeLeft = this.stageConfigs[0].timeLimit;
-    // 아이템 재지급 (테스트용으로 시간/리셋 아이템 20개씩)
-    this.hammerCount = 4;
+    // 아이템 재지급 (테스트용으로 모든 아이템 충분히 지급)
+    this.hammerCount = 10; // 테스트용으로 10개로 증가
     this.shuffleCount = 20; // 테스트용으로 20개로 증가
     this.timeCount = 20; // 테스트용으로 20개로 증가
     this.activeItem = null;
