@@ -68,6 +68,7 @@
             maxlength="10"
             autocomplete="off"
           />
+          <button id="nicknameEditBtn" class="btn btn-secondary btn-small hidden" type="button">변경</button>
         </div>
         <button id="nicknameSubmitBtn" class="btn btn-primary btn-large">다음</button>
       </div>
@@ -108,10 +109,36 @@
         <!-- 리더보드 -->
         <div class="leaderboard-container">
           <h3 class="leaderboard-title">🏆 순위표</h3>
+          <div class="leaderboard-tabs">
+            <button type="button" class="tab-btn active" data-mode="single">단판</button>
+            <button type="button" class="tab-btn" data-mode="total">누적</button>
+          </div>
           <div id="leaderboardList" class="leaderboard-list"></div>
         </div>
         
         <button id="playAgainBtn" class="btn btn-primary">다시 플레이</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 커스텀 알럿/컨펌 -->
+  <div id="alertModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="alertTitle">알림</h2>
+      <p id="alertMessage" class="modal-desc"></p>
+      <div class="modal-actions">
+        <button id="alertOkBtn" class="btn btn-primary">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="confirmTitle">확인</h2>
+      <p id="confirmMessage" class="modal-desc"></p>
+      <div class="modal-actions">
+        <button id="confirmCancelBtn" class="btn btn-secondary">취소</button>
+        <button id="confirmOkBtn" class="btn btn-primary">확인</button>
       </div>
     </div>
   </div>

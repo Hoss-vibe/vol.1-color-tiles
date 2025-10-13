@@ -74,6 +74,14 @@ class ColorTilesGame {
     this.loadNickname();
     this.updateStageDisplay();
     this.updateItemDisplay();
+    
+    // 고유 플레이어 ID (로컬 1회 생성 후 유지)
+    this.playerId = this.getOrCreatePlayerId();
+    // 기본 리더보드 모드: 단판
+    this.leaderboardMode = 'single';
+
+    // 기존 사용자면 닉네임 입력을 읽기 전용으로 전환
+    this.applyNicknameReadonlyState();
   }
   
   initializeEventListeners() {
@@ -87,6 +95,17 @@ class ColorTilesGame {
     this.resetBtn.addEventListener('click', () => this.resetGame());
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
     this.nextStageBtn.addEventListener('click', async () => await this.nextStage());
+    
+    // 리더보드 탭 전환
+    const tabs = document.querySelectorAll('.leaderboard-tabs .tab-btn');
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.leaderboardMode = btn.dataset.mode; // 'single' | 'total'
+        await this.displayLeaderboard();
+      });
+    });
     
     // 아이템 클릭 이벤트
     this.hammerItem.addEventListener('click', () => this.selectItem('hammer'));
@@ -104,6 +123,88 @@ class ColorTilesGame {
       
       this.handleTileClick(row, col);
     });
+
+    // 닉네임 변경 버튼
+    const editBtn = document.getElementById('nicknameEditBtn');
+    if (editBtn) {
+      editBtn.addEventListener('click', async () => {
+        if (this.nicknameInput.readOnly) {
+          const ok = await this.confirmModal('확인', '닉네임을 변경하면 누적 데이터가 최신 닉네임으로 표시됩니다. 계속하시겠습니까?');
+          if (!ok) return;
+          this.nicknameInput.readOnly = false;
+          this.nicknameInput.focus();
+          editBtn.textContent = '완료';
+        } else {
+          const nickname = this.nicknameInput.value.trim();
+          if (!nickname) {
+            await this.alertModal('알림', '닉네임을 입력해주세요!');
+            return;
+          }
+          this.nickname = nickname;
+          localStorage.setItem('colorTilesNickname', nickname);
+          this.nicknameInput.readOnly = true;
+          editBtn.textContent = '변경';
+          await this.alertModal('완료', '닉네임이 변경되었습니다. 누적 데이터는 최신 닉네임으로 표시됩니다.');
+        }
+      });
+    }
+  }
+
+  // 커스텀 알럿/컨펌
+  alertModal(title, message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('alertModal');
+      document.getElementById('alertTitle').textContent = title;
+      document.getElementById('alertMessage').textContent = message;
+      modal.classList.remove('hidden');
+      const ok = document.getElementById('alertOkBtn');
+      const close = () => { modal.classList.add('hidden'); ok.removeEventListener('click', close); resolve(true); };
+      ok.addEventListener('click', close);
+    });
+  }
+
+  confirmModal(title, message) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('confirmModal');
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+      modal.classList.remove('hidden');
+      const ok = document.getElementById('confirmOkBtn');
+      const cancel = document.getElementById('confirmCancelBtn');
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        ok.removeEventListener('click', onOk);
+        cancel.removeEventListener('click', onCancel);
+      };
+      const onOk = () => { cleanup(); resolve(true); };
+      const onCancel = () => { cleanup(); resolve(false); };
+      ok.addEventListener('click', onOk);
+      cancel.addEventListener('click', onCancel);
+    });
+  }
+
+  applyNicknameReadonlyState() {
+    const saved = localStorage.getItem('colorTilesNickname');
+    const editBtn = document.getElementById('nicknameEditBtn');
+    if (saved) {
+      // 기본 readOnly + 편집 버튼 표시
+      this.nicknameInput.readOnly = true;
+      if (editBtn) editBtn.classList.remove('hidden');
+    } else {
+      this.nicknameInput.readOnly = false;
+      if (editBtn) editBtn.classList.add('hidden');
+    }
+  }
+
+  getOrCreatePlayerId() {
+    const key = 'colorTilesPlayerId';
+    let id = localStorage.getItem(key);
+    if (!id) {
+      // RFC4122는 아니지만 충돌 가능성 매우 낮은 간단한 UUID
+      id = 'p_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      localStorage.setItem(key, id);
+    }
+    return id;
   }
   
   initializeBoard() {
@@ -948,6 +1049,7 @@ class ColorTilesGame {
       const newEntry = {
         nickname: this.nickname,
         score: this.totalScore,
+        playerId: this.playerId,
         date: new Date().toISOString(),
         timestamp: Date.now()
       };
@@ -980,6 +1082,7 @@ class ColorTilesGame {
           nickname: data.nickname,
           score: data.score,
           date: new Date(data.date).toLocaleDateString('ko-KR'),
+          playerId: data.playerId,
           timestamp: data.timestamp
         });
       });
@@ -996,9 +1099,32 @@ class ColorTilesGame {
     const leaderboard = await this.getLeaderboard();
     const leaderboardList = document.getElementById('leaderboardList');
     
-    // 내 순위 찾기
-    const myRank = leaderboard.findIndex(entry => 
-      entry.nickname === this.nickname && entry.score === this.totalScore
+    // 누적/단판 모드별 데이터 구성
+    let working = [...leaderboard];
+    if (this.leaderboardMode === 'total') {
+      const totals = new Map();
+      const latestById = new Map(); // playerId별 최신 닉네임 결정(최근 timestamp 우선)
+      working.forEach(e => {
+        const key = e.playerId || 'legacy';
+        totals.set(key, (totals.get(key) || 0) + (e.score || 0));
+        // 최신 닉네임: timestamp가 큰 값을 선택
+        const prev = latestById.get(key);
+        if (!prev || (e.timestamp || 0) > (prev.ts || 0)) {
+          latestById.set(key, { name: key === 'legacy' ? '과거 데이터 합계' : (e.nickname || 'Player'), ts: e.timestamp || 0 });
+        }
+      });
+      working = Array.from(totals.entries()).map(([playerId, score]) => ({
+        playerId,
+        nickname: (latestById.get(playerId)?.name) || 'Player',
+        score
+      })).sort((a,b)=>b.score-a.score);
+    }
+
+    // 내 순위 찾기 (모드별로 기준이 다름)
+    const myRank = working.findIndex(entry => 
+      entry.playerId === this.playerId && (
+        this.leaderboardMode === 'total' ? true : entry.score === this.totalScore
+      )
     ) + 1;
     
     leaderboardList.innerHTML = '';
@@ -1010,15 +1136,17 @@ class ColorTilesGame {
     
     if (myRank <= 3 || myRank === 0) {
       // Top 3 안이거나 기록이 없으면 Top 3만 표시
-      top3Items = leaderboard.slice(0, 3);
+      top3Items = working.slice(0, 3);
     } else {
       // Top 3 + 내 주변 표시
-      top3Items = leaderboard.slice(0, 3);
+      top3Items = working.slice(0, 3);
 
-      // 내 주변: 위 1명, 나, 아래 1명 → slice의 끝 인덱스는 "제외"이므로 +2
-      const startIdx = Math.max(3, myRank - 1); // Top3 다음부터 시작 보장
-      const endIdx = Math.min(leaderboard.length, myRank + 2); // myRank+1까지 포함
-      myAreaItems = leaderboard.slice(startIdx, endIdx);
+      // 내 주변: 위 1명, 나, 아래 1명 → slice의 끝 인덱스는 "제외"
+      // myRank는 1-based, 배열 인덱스는 0-based이므로
+      // [myRank-1, myRank, myRank+1] 랭크를 얻으려면 인덱스 [myRank-2, myRank+1) 범위를 사용
+      const startIdx = Math.max(3, myRank - 2); // Top3 다음부터 시작 보장
+      const endIdx = Math.min(working.length, myRank + 1); // myRank+1까지 포함되도록 exclusive end
+      myAreaItems = working.slice(startIdx, endIdx);
 
       // Top3 바로 다음(4등)부터가 아니면 구분선 표시
       if (startIdx > 3) {
@@ -1028,7 +1156,7 @@ class ColorTilesGame {
     
     // Top 3 렌더링
     top3Items.forEach((entry) => {
-      const actualRank = leaderboard.indexOf(entry) + 1;
+      const actualRank = working.indexOf(entry) + 1;
       const isMe = (actualRank === myRank);
       const medal = actualRank === 1 ? '👑' : actualRank === 2 ? '🥈' : actualRank === 3 ? '🥉' : actualRank.toString();
       
@@ -1051,7 +1179,7 @@ class ColorTilesGame {
     
     // 내 주변 렌더링
     myAreaItems.forEach((entry) => {
-      const actualRank = leaderboard.indexOf(entry) + 1;
+      const actualRank = working.indexOf(entry) + 1;
       const isMe = (actualRank === myRank);
       
       const item = document.createElement('div');
