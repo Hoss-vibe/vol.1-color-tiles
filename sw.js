@@ -1,4 +1,4 @@
-const CACHE_NAME = 'color-tiles-v2';
+const CACHE_NAME = 'color-tiles-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -21,6 +21,12 @@ self.addEventListener('install', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  // AdSense 스크립트는 네트워크에서만 로드
+  if (event.request.url.includes('googlesyndication.com') || 
+      event.request.url.includes('adsbygoogle.js')) {
+    return; // Service Worker에서 처리하지 않음
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -28,7 +34,10 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).catch(() => {
+          // 네트워크 실패 시 기본 응답
+          return new Response('Network error', { status: 408 });
+        });
       }
     )
   );
