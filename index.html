@@ -15,9 +15,18 @@
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
   <link rel="manifest" href="manifest.json">
   
-  <!-- AdSense 코드 -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6134173800838632"
-       crossorigin="anonymous"></script>
+  <!-- AdSense 코드 (PWA 환경에서 로딩 실패 시 무시) -->
+  <script>
+    // AdSense 스크립트 로딩 (에러 무시)
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6134173800838632';
+    script.crossOrigin = 'anonymous';
+    script.onerror = () => {
+      console.log('AdSense 스크립트 로딩 실패 (PWA 환경에서 정상)');
+    };
+    document.head.appendChild(script);
+  </script>
   
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" href="favicon.ico">
