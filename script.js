@@ -1,15 +1,19 @@
 class ColorTilesGame {
   constructor() {
-    // 스테이지 설정
+    // 스테이지 설정 (8개로 확장, 모든 스테이지 50초 고정, 최대 12x12)
     this.stageConfigs = [
-      { boardSize: 8, numColors: 5, timeLimit: 50 }, // Stage 1
-      { boardSize: 8, numColors: 6, timeLimit: 45 }, // Stage 2
-      { boardSize: 10, numColors: 6, timeLimit: 40 }, // Stage 3
-      { boardSize: 10, numColors: 7, timeLimit: 35 }  // Stage 4
+      { boardSize: 8, numColors: 5, timeLimit: 50 },   // Stage 1
+      { boardSize: 8, numColors: 6, timeLimit: 50 },   // Stage 2
+      { boardSize: 10, numColors: 6, timeLimit: 50 },  // Stage 3
+      { boardSize: 10, numColors: 7, timeLimit: 50 },  // Stage 4
+      { boardSize: 10, numColors: 8, timeLimit: 50 },  // Stage 5
+      { boardSize: 12, numColors: 8, timeLimit: 50 },  // Stage 6
+      { boardSize: 12, numColors: 9, timeLimit: 50 },  // Stage 7
+      { boardSize: 12, numColors: 10, timeLimit: 50 }  // Stage 8 (최대 12x12)
     ];
     
-    this.currentStage = 1;
-    this.totalStages = 4;
+    this.currentStage = 1; // 기본값으로 1스테이지로 시작
+    this.totalStages = 8;
     this.totalScore = 0;
     
     // 더블 클릭 확대 방지
@@ -17,9 +21,9 @@ class ColorTilesGame {
       e.preventDefault();
     });
     
-    // 현재 스테이지 설정 적용
-    this.boardSize = this.stageConfigs[0].boardSize;
-    this.numColors = this.stageConfigs[0].numColors;
+    // 현재 스테이지 설정 적용 (기본값으로 1스테이지 설정)
+    this.boardSize = this.stageConfigs[0].boardSize; // Stage 1: 8x8
+    this.numColors = this.stageConfigs[0].numColors; // Stage 1: 5색
     
     this.gameBoard = document.getElementById('gameBoard');
     this.scoreElement = document.getElementById('score');
@@ -53,16 +57,16 @@ class ColorTilesGame {
     
     this.board = [];
     this.score = 0;
-    this.timeLeft = 50;
+    this.timeLeft = this.stageConfigs[0].timeLimit; // Stage 1: 50초
     this.gameActive = false;
     this.timerInterval = null;
     this.nickname = '';
     
-    // 아이템 개수 (스테이지당 1개씩)
+    // 아이템 개수 (테스트용으로 시간/리셋 아이템 20개씩 추가)
     // 아이템은 게임 전체에서 고정 수량으로 지급
     this.hammerCount = 4;
-    this.shuffleCount = 4;
-    this.timeCount = 4;
+    this.shuffleCount = 20; // 테스트용으로 20개로 증가
+    this.timeCount = 20; // 테스트용으로 20개로 증가
     this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
@@ -72,7 +76,10 @@ class ColorTilesGame {
       'color-3', // 파스텔 퍼플
       'color-4', // 파스텔 코랄
       'color-5', // 파스텔 옐로우
-      'color-6'  // 파스텔 라벤더
+      'color-6', // 파스텔 라벤더
+      'color-7', // 파스텔 그린
+      'color-8', // 파스텔 오렌지
+      'color-9'  // 파스텔 시안
     ];
     
     this.initializeEventListeners();
@@ -389,10 +396,10 @@ class ColorTilesGame {
     this.boardSize = this.stageConfigs[0].boardSize;
     this.numColors = this.stageConfigs[0].numColors;
     this.timeLeft = this.stageConfigs[0].timeLimit;
-    // 아이템 재지급
+    // 아이템 재지급 (테스트용으로 시간/리셋 아이템 20개씩)
     this.hammerCount = 4;
-    this.shuffleCount = 4;
-    this.timeCount = 4;
+    this.shuffleCount = 20; // 테스트용으로 20개로 증가
+    this.timeCount = 20; // 테스트용으로 20개로 증가
     this.activeItem = null;
     this.stopTimer();
     this.updateDisplay();
@@ -465,7 +472,7 @@ class ColorTilesGame {
     this.gameActive = false;
     this.stopTimer();
     
-    // 총점에 현재 점수 추가
+    // 총점에 현재 점수 추가 (스테이지 클리어 시에만)
     this.totalScore += this.score;
     
     // 스테이지 클리어 모달 표시
@@ -889,8 +896,7 @@ class ColorTilesGame {
       return;
     }
     
-    // 총점에 현재 점수 추가
-    this.totalScore += this.score;
+    // 총점은 이미 clearStage()에서 추가됨 (중복 추가 방지)
     this.finalScoreElement.textContent = this.totalScore;
     
     // 리더보드에 점수 저장

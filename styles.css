@@ -253,6 +253,15 @@ body {
 .tile.color-6 { 
   background: linear-gradient(135deg, #E6D5FF 0%, #D0B5FF 100%);
 }
+.tile.color-7 { 
+  background: linear-gradient(135deg, #66CC66 0%, #4CAF50 100%);
+}
+.tile.color-8 { 
+  background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+}
+.tile.color-9 { 
+  background: linear-gradient(135deg, #42A5F5 0%, #2196F3 100%);
+}
 
 /* 애니메이션 효과 */
 .tile.matched {
