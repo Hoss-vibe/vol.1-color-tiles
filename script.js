@@ -155,10 +155,12 @@ class ColorTilesGame {
       this.handleTileClick(row, col);
     });
 
-    // 닉네임 변경 버튼
+    // 닉네임 변경 버튼 (PWA 환경에서도 확실히 동작)
     const editBtn = document.getElementById('nicknameEditBtn');
     if (editBtn) {
+      console.log('닉네임 변경 버튼 이벤트 리스너 등록됨');
       editBtn.addEventListener('click', async () => {
+        console.log('닉네임 변경 버튼 클릭됨');
         if (this.nicknameInput.readOnly) {
           const ok = await this.confirmModal('확인', '닉네임을 변경하면 누적 데이터가 최신 닉네임으로 표시됩니다. 계속하시겠습니까?');
           if (!ok) return;
@@ -178,6 +180,8 @@ class ColorTilesGame {
           await this.alertModal('완료', '닉네임이 변경되었습니다. 누적 데이터는 최신 닉네임으로 표시됩니다.');
         }
       });
+    } else {
+      console.error('닉네임 변경 버튼을 찾을 수 없음');
     }
   }
 
@@ -217,10 +221,17 @@ class ColorTilesGame {
   applyNicknameReadonlyState() {
     const saved = localStorage.getItem('colorTilesNickname');
     const editBtn = document.getElementById('nicknameEditBtn');
+    
+    // PWA 환경에서도 확실히 동작하도록 수정
     if (saved) {
       // 기본 readOnly + 편집 버튼 표시
       this.nicknameInput.readOnly = true;
-      if (editBtn) editBtn.classList.remove('hidden');
+      if (editBtn) {
+        editBtn.classList.remove('hidden');
+        console.log('닉네임 변경 버튼 표시됨');
+      } else {
+        console.error('닉네임 변경 버튼을 찾을 수 없음');
+      }
     } else {
       this.nicknameInput.readOnly = false;
       if (editBtn) editBtn.classList.add('hidden');

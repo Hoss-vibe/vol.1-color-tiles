@@ -613,17 +613,7 @@ body {
 }
 
 /* 내 순위 강조 */
-.leaderboard-item.is-me {
-  background: linear-gradient(135deg, #e6f3ff, #cce5ff);
-  border-color: var(--accent-blue);
-  border-width: 3px;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
-}
-
-.leaderboard-item.is-me .nickname {
-  color: var(--accent-blue);
-  font-weight: 700;
-}
+/* 내 점수는 별도 영역으로 분리되어 특별한 스타일 불필요 */
 
 .btn {
   padding: 12px 24px;
