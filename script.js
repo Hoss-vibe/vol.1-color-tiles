@@ -26,7 +26,7 @@ class ColorTilesGame {
     this.nicknameInput = document.getElementById('nicknameInput');
     this.nicknameSubmitBtn = document.getElementById('nicknameSubmitBtn');
     this.startGameBtn = document.getElementById('startGameBtn');
-    this.resetBtn = document.getElementById('resetBtn');
+    // resetBtn 제거: 게임 종료 모달에서만 재시작
     this.playAgainBtn = document.getElementById('playAgainBtn');
     this.nextStageBtn = document.getElementById('nextStageBtn');
     this.instructionsModal = document.getElementById('instructionsModal');
@@ -54,9 +54,10 @@ class ColorTilesGame {
     this.nickname = '';
     
     // 아이템 개수 (스테이지당 1개씩)
-    this.hammerCount = 1;
-    this.shuffleCount = 1;
-    this.timeCount = 1;
+    // 아이템은 게임 전체에서 고정 수량으로 지급
+    this.hammerCount = 4;
+    this.shuffleCount = 4;
+    this.timeCount = 4;
     this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
@@ -82,6 +83,8 @@ class ColorTilesGame {
 
     // 기존 사용자면 닉네임 입력을 읽기 전용으로 전환
     this.applyNicknameReadonlyState();
+    // 보상광고 1회 제한(세션 기준)
+    this.adRewardUsed = { hammer: false, shuffle: false, time: false };
   }
   
   initializeEventListeners() {
@@ -92,7 +95,7 @@ class ColorTilesGame {
       }
     });
     this.startGameBtn.addEventListener('click', () => this.startGame());
-    this.resetBtn.addEventListener('click', () => this.resetGame());
+    // reset 버튼은 삭제됨
     this.playAgainBtn.addEventListener('click', () => this.resetGame());
     this.nextStageBtn.addEventListener('click', async () => await this.nextStage());
     
@@ -111,6 +114,29 @@ class ColorTilesGame {
     this.hammerItem.addEventListener('click', () => this.selectItem('hammer'));
     this.shuffleItem.addEventListener('click', () => this.useShuffleItem());
     this.timeItem.addEventListener('click', () => this.useTimeItem());
+    
+    // 광고 보상 버튼
+    const adButtons = [
+      { id: 'hammerAdBtn', type: 'hammer' },
+      { id: 'shuffleAdBtn', type: 'shuffle' },
+      { id: 'timeAdBtn', type: 'time' }
+    ];
+    adButtons.forEach(({ id, type }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          if (this.adRewardUsed[type]) {
+            await this.alertModal('알림', '이미 보상을 받으셨습니다.');
+            return;
+          }
+          const ok = await this.confirmModal('광고 보기', '광고를 보면 해당 아이템을 +1 지급합니다. 진행할까요?');
+          if (!ok) return;
+          await new Promise(r => setTimeout(r, 2000));
+          this.grantAdReward(type);
+          await this.alertModal('완료', '아이템이 +1 지급되었습니다.');
+        });
+      }
+    });
     
     this.gameBoard.addEventListener('click', (e) => {
       if (!this.gameActive) return;
@@ -330,10 +356,7 @@ class ColorTilesGame {
     const stageConfig = this.stageConfigs[this.currentStage - 1];
     this.timeLeft = stageConfig.timeLimit;
     
-    // 스테이지 시작 시 아이템 리셋
-    this.hammerCount = 1;
-    this.shuffleCount = 1;
-    this.timeCount = 1;
+    // 게임 시작 시에만 지급된 아이템으로 진행 (스테이지 간 리셋 없음)
     this.activeItem = null;
     
     this.updateDisplay();
@@ -350,8 +373,14 @@ class ColorTilesGame {
     this.boardSize = this.stageConfigs[0].boardSize;
     this.numColors = this.stageConfigs[0].numColors;
     this.timeLeft = this.stageConfigs[0].timeLimit;
+    // 아이템 재지급
+    this.hammerCount = 4;
+    this.shuffleCount = 4;
+    this.timeCount = 4;
+    this.activeItem = null;
     this.stopTimer();
     this.updateDisplay();
+    this.updateItemDisplay();
     this.updateStageDisplay();
     this.initializeBoard();
     this.gameOverModal.classList.add('hidden');
@@ -405,10 +434,7 @@ class ColorTilesGame {
     this.timeLeft = stageConfig.timeLimit;
     this.score = 0;
     
-    // 다음 스테이지 아이템 리셋
-    this.hammerCount = 1;
-    this.shuffleCount = 1;
-    this.timeCount = 1;
+    // 다음 스테이지에서도 아이템은 추가 지급/리셋 없음
     this.activeItem = null;
     
     this.stageClearModal.classList.add('hidden');
@@ -879,20 +905,36 @@ class ColorTilesGame {
     this.shuffleCountElement.textContent = this.shuffleCount;
     this.timeCountElement.textContent = this.timeCount;
     
-    // 개수가 0이면 disabled 클래스 추가
-    this.hammerItem.classList.toggle('disabled', this.hammerCount === 0);
-    this.shuffleItem.classList.toggle('disabled', this.shuffleCount === 0);
-    this.timeItem.classList.toggle('disabled', this.timeCount === 0);
+    // 개수가 0이면 시각적 소진 상태 표시(클릭은 보상버튼 위해 유지)
+    this.hammerItem.classList.toggle('depleted', this.hammerCount === 0);
+    this.shuffleItem.classList.toggle('depleted', this.shuffleCount === 0);
+    this.timeItem.classList.toggle('depleted', this.timeCount === 0);
     
     // 개수가 0이면 배지 스타일 변경
     this.hammerCountElement.classList.toggle('zero', this.hammerCount === 0);
     this.shuffleCountElement.classList.toggle('zero', this.shuffleCount === 0);
     this.timeCountElement.classList.toggle('zero', this.timeCount === 0);
     
+    // 광고 보상 버튼 표시
+    const showBtn = (id, show) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden', !show);
+    };
+    showBtn('hammerAdBtn', this.hammerCount === 0 && !this.adRewardUsed?.hammer);
+    showBtn('shuffleAdBtn', this.shuffleCount === 0 && !this.adRewardUsed?.shuffle);
+    showBtn('timeAdBtn', this.timeCount === 0 && !this.adRewardUsed?.time);
+    
     // active 상태 업데이트
     this.hammerItem.classList.toggle('active', this.activeItem === 'hammer');
     this.shuffleItem.classList.remove('active');
     this.timeItem.classList.remove('active');
+  }
+
+  grantAdReward(type) {
+    if (type === 'hammer') { this.hammerCount += 1; this.adRewardUsed.hammer = true; }
+    if (type === 'shuffle') { this.shuffleCount += 1; this.adRewardUsed.shuffle = true; }
+    if (type === 'time') { this.timeCount += 1; this.adRewardUsed.time = true; }
+    this.updateItemDisplay();
   }
   
   // 망치 아이템 선택

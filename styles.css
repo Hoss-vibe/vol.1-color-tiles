@@ -440,7 +440,31 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow);
+  user-select: none; /* 텍스트 선택 방지 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
+
+.ad-reward-btn {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35);
+  cursor: pointer;
+}
+
+.ad-reward-btn:hover { filter: brightness(1.05); }
+.ad-reward-btn:active { transform: translateX(-50%) scale(0.98); }
+.hidden { display: none; }
 
 .item-slot:hover:not(.disabled) {
   transform: translateY(-3px);
@@ -453,10 +477,16 @@ body {
   transform: translateY(-1px);
 }
 
-.item-slot.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  filter: grayscale(1);
+.item-slot.depleted {
+  /* 부모의 흐림/투명도 영향 제거 */
+  opacity: 0.5;
+}
+
+.item-slot.depleted .ad-reward-btn {
+  opacity: 1;
+  filter: none;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .item-slot.active {
