@@ -1,15 +1,15 @@
 class ColorTilesGame {
   constructor() {
-    // 스테이지 설정 (8개로 확장, 모든 스테이지 50초 고정, 모바일 최적화)
+    // 스테이지 설정 (8개로 확장, 모든 스테이지 50초 고정, 8x8 고정)
     this.stageConfigs = [
       { boardSize: 8, numColors: 5, timeLimit: 50 },   // Stage 1
       { boardSize: 8, numColors: 6, timeLimit: 50 },   // Stage 2
       { boardSize: 8, numColors: 7, timeLimit: 50 },   // Stage 3
       { boardSize: 8, numColors: 8, timeLimit: 50 },   // Stage 4
-      { boardSize: 9, numColors: 8, timeLimit: 50 },   // Stage 5
-      { boardSize: 9, numColors: 9, timeLimit: 50 },   // Stage 6
-      { boardSize: 10, numColors: 9, timeLimit: 50 },  // Stage 7
-      { boardSize: 10, numColors: 10, timeLimit: 50 }  // Stage 8 (최대 10x10)
+      { boardSize: 8, numColors: 9, timeLimit: 50 },   // Stage 5
+      { boardSize: 8, numColors: 10, timeLimit: 50 },  // Stage 6
+      { boardSize: 8, numColors: 11, timeLimit: 50 },  // Stage 7
+      { boardSize: 8, numColors: 12, timeLimit: 50 }   // Stage 8 (최대 8x8, 12색)
     ];
     
     this.currentStage = 1; // 기본값으로 1스테이지로 시작
@@ -70,16 +70,18 @@ class ColorTilesGame {
     this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
-      'color-0', // 파스텔 핑크
-      'color-1', // 파스텔 블루
-      'color-2', // 파스텔 민트
-      'color-3', // 파스텔 퍼플
-      'color-4', // 파스텔 코랄
-      'color-5', // 파스텔 옐로우
-      'color-6', // 파스텔 라벤더
-      'color-7', // 파스텔 그린
-      'color-8', // 파스텔 오렌지
-      'color-9'  // 파스텔 시안
+      'color-0',  // 파스텔 핑크
+      'color-1',  // 파스텔 블루
+      'color-2',  // 파스텔 민트
+      'color-3',  // 파스텔 퍼플
+      'color-4',  // 파스텔 코랄
+      'color-5',  // 파스텔 옐로우
+      'color-6',  // 파스텔 라벤더
+      'color-7',  // 진한 그린
+      'color-8',  // 진한 오렌지
+      'color-9',  // 진한 시안
+      'color-10', // 파스텔 로즈
+      'color-11'  // 파스텔 라임
     ];
     
     this.initializeEventListeners();
