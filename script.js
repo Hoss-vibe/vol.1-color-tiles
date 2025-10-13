@@ -264,8 +264,12 @@ class ColorTilesGame {
     this.gameBoard.style.gridTemplateColumns = `repeat(${this.boardSize}, 1fr)`;
     this.gameBoard.style.gridTemplateRows = `repeat(${this.boardSize}, 1fr)`;
     
-    // 전체 타일 수 계산 (약 62.5%의 타일 배치)
-    const tilesPerColor = Math.floor(this.boardSize); // 각 색상당 타일 수
+    // 전체 타일 수 계산 (약 60-70%의 타일 배치, 색상 수에 따라 조정)
+    let tilesPerColor = Math.max(4, Math.floor(this.boardSize * 0.7)); // 각 색상당 타일 수
+    // 홀수면 짝수로 변환 (매칭 가능하도록)
+    if (tilesPerColor % 2 !== 0) {
+      tilesPerColor = tilesPerColor - 1;
+    }
     const totalTiles = this.numColors * tilesPerColor;
     const boardCells = this.boardSize * this.boardSize;
     const emptySpaces = boardCells - totalTiles;
