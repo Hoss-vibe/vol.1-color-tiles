@@ -103,6 +103,11 @@ body {
   color: var(--accent-blue);
 }
 
+#nicknameDisplay {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 /* 스테이지 그리드 (3열로 변경, 모바일 최적화) */
 .stages-grid {
   display: grid;

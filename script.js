@@ -207,6 +207,12 @@ class ColorTilesGame {
             await this.alertModal('알림', '닉네임을 입력해주세요!');
             return;
           }
+          // 닉네임 중복 확인
+          const unique = await this.isNicknameAvailable(nickname);
+          if (!unique) {
+            await this.alertModal('알림', '이미 사용 중인 닉네임입니다.');
+            return;
+          }
           this.nickname = nickname;
           if (!this.stageData) this.stageData = await this.loadStageData();
           this.stageData.nickname = nickname;
@@ -404,14 +410,14 @@ class ColorTilesGame {
   updateHomeScreen() {
     // 총 별/총점 계산
     const totalStars = this.stageData.stages.reduce((sum, stage) => sum + stage.stars, 0);
-    const totalScore = this.stageData.stages.reduce((sum, stage) => sum + stage.score, 0);
     const totalStages = this.stageConfigs.length;
     const totalStarsMax = totalStages * 3;
     
     document.getElementById('totalStars').textContent = `⭐ ${totalStars}`;
     const maxEl = document.getElementById('totalStarsMax');
     if (maxEl) maxEl.textContent = totalStarsMax.toString();
-    document.getElementById('totalScoreHome').textContent = totalScore.toLocaleString();
+    const nickEl = document.getElementById('nicknameDisplay');
+    if (nickEl) nickEl.textContent = this.nickname || 'Player';
 
     // 스테이지 카드 업데이트
     document.querySelectorAll('.stage-card').forEach((card) => {
@@ -594,17 +600,25 @@ class ColorTilesGame {
       alert('닉네임을 입력해주세요!');
       return;
     }
+    // 닉네임 중복 확인
+    const unique = await this.isNicknameAvailable(nickname);
+    if (!unique) {
+      await this.alertModal('알림', '이미 사용 중인 닉네임입니다.');
+      return;
+    }
     
     this.nickname = nickname;
-    // Firebase users 문서 갱신을 위해 stageData 로드 (없으면 초기)
+    // Firebase users 문서 갱신
     if (!this.stageData) {
       this.stageData = await this.loadStageData();
     }
+    this.normalizeStageData();
     this.stageData.nickname = nickname;
     await this.saveStageData();
     
     // 스테이지 데이터 최신 로드
     this.stageData = await this.loadStageData();
+    this.normalizeStageData();
     
     // 닉네임 모달 닫고 홈화면 표시
     this.nicknameModal.classList.add('hidden');
@@ -612,11 +626,13 @@ class ColorTilesGame {
   }
   
   async loadNickname() {
-    // Firebase에서 stage/user 데이터 로드 후 닉네임 사용
-    this.stageData = await this.loadStageData();
-    if (this.stageData?.nickname) {
-      this.nickname = this.stageData.nickname;
-      if (this.nicknameInput) this.nicknameInput.value = this.nickname;
+    const saved = localStorage.getItem('colorTilesNickname');
+    if (saved) {
+      this.nickname = saved;
+      this.nicknameInput.value = saved;
+      // 스테이지 데이터 로드
+      this.stageData = await this.loadStageData();
+      // 닉네임이 있으면 바로 홈화면으로
       this.nicknameModal.classList.add('hidden');
       this.showHomeScreen();
     }
@@ -1434,12 +1450,116 @@ class ColorTilesGame {
       return [];
     }
   }
+
+  // users 컬렉션 기반 리더보드 데이터 (스테이지/누적)
+  async getUsersLeaderboard(modeRaw) {
+    try {
+      const usersCol = window.firebaseCollection(window.db, 'users');
+      const q = window.firebaseQuery(usersCol, window.firebaseLimit(1000));
+      const snap = await window.firebaseGetDocs(q);
+      const users = [];
+      snap.forEach((doc) => {
+        const d = doc.data() || {};
+        const stages = Array.isArray(d.stages) ? d.stages : [];
+        const totalStars = typeof d.totalStars === 'number' ? d.totalStars : stages.reduce((s, st) => s + (st?.stars || 0), 0);
+        let bestStage = 0;
+        let bestStageStars = 0;
+        stages.forEach((st, idx) => {
+          const stageNum = st?.stage || (idx + 1);
+          if (st?.cleared) {
+            if (stageNum > bestStage) {
+              bestStage = stageNum;
+              bestStageStars = st.stars || 0;
+            } else if (stageNum === bestStage) {
+              bestStageStars = Math.max(bestStageStars, st.stars || 0);
+            }
+          }
+        });
+        users.push({
+          playerId: d.playerId,
+          nickname: d.nickname || 'Player',
+          totalStars,
+          bestStage,
+          bestStageStars,
+          lastUpdated: d.lastUpdated || ''
+        });
+      });
+      const mode = modeRaw === 'total' ? 'total' : 'stage';
+      if (mode === 'total') {
+        users.sort((a, b) => (b.totalStars - a.totalStars) || ((b.lastUpdated || '').localeCompare(a.lastUpdated || '')));
+        return users.map(u => ({ playerId: u.playerId, nickname: u.nickname, totalStars: u.totalStars }));
+      }
+      users.sort((a, b) => (b.bestStage - a.bestStage) || (b.bestStageStars - a.bestStageStars) || ((b.lastUpdated || '').localeCompare(a.lastUpdated || '')));
+      return users.map(u => ({ playerId: u.playerId, nickname: u.nickname, bestStage: u.bestStage, bestStageStars: u.bestStageStars }));
+    } catch (e) {
+      console.error('users 리더보드 불러오기 실패:', e);
+      return [];
+    }
+  }
+
+  // 닉네임 중복 확인 (같은 playerId는 허용)
+  async isNicknameAvailable(nickname) {
+    try {
+      const usersCol = window.firebaseCollection(window.db, 'users');
+      const q = window.firebaseQuery(usersCol, window.firebaseWhere('nickname', '==', nickname), window.firebaseLimit(1));
+      const snap = await window.firebaseGetDocs(q);
+      if (snap.empty) return true;
+      const data = snap.docs[0].data() || {};
+      return data.playerId === this.playerId;
+    } catch (e) {
+      console.warn('닉네임 중복 확인 실패:', e);
+      return true;
+    }
+  }
+
+  // stageData 배열 길이 보정
+  normalizeStageData() {
+    if (!this.stageData) return;
+    const needed = this.stageConfigs.length;
+    if (!Array.isArray(this.stageData.stages)) this.stageData.stages = [];
+    while (this.stageData.stages.length < needed) {
+      const idx = this.stageData.stages.length;
+      this.stageData.stages.push({ stage: idx + 1, stars: 0, score: 0, cleared: false, unlocked: idx === 0 });
+    }
+  }
   
   // 리더보드 표시
   async displayLeaderboard() {
     const leaderboard = await this.getLeaderboard();
     const leaderboardList = document.getElementById('leaderboardList');
     
+    // 새 users 기반 렌더링(우선 적용)
+    try {
+      const usersLB = await this.getUsersLeaderboard(this.leaderboardMode);
+      if (Array.isArray(usersLB) && usersLB.length) {
+        leaderboardList.innerHTML = '';
+        const working = usersLB;
+        // 홈/게임 종료 모두 전체 리스트 렌더링
+        working.forEach((entry, idx) => {
+          const actualRank = idx + 1;
+          const item = document.createElement('div');
+          item.className = 'leaderboard-item';
+          if (this.leaderboardMode === 'total') {
+            item.innerHTML = `
+              <span class="rank">${actualRank}</span>
+              <span class="nickname">${entry.nickname || 'Player'}</span>
+          <span class="score">⭐ × ${(entry.totalStars || 0)}</span>
+            `;
+          } else {
+            item.innerHTML = `
+              <span class="rank">${actualRank}</span>
+              <span class="nickname">${entry.nickname || 'Player'}</span>
+          <span class="score">${entry.bestStage || 0} · ⭐${entry.bestStageStars || 0}</span>
+            `;
+          }
+          leaderboardList.appendChild(item);
+        });
+        return;
+      }
+    } catch (e) {
+      console.warn('users 기반 렌더링 실패, 기존 로직 사용');
+    }
+
     // 누적/단판 모드별 데이터 구성
     let working = [...leaderboard];
     if (this.leaderboardMode === 'total') {
@@ -1448,7 +1568,6 @@ class ColorTilesGame {
       working.forEach(e => {
         const key = e.playerId || 'legacy';
         totals.set(key, (totals.get(key) || 0) + (e.score || 0));
-        // 최신 닉네임: timestamp가 큰 값을 선택
         const prev = latestById.get(key);
         if (!prev || (e.timestamp || 0) > (prev.ts || 0)) {
           latestById.set(key, { name: key === 'legacy' ? '과거 데이터 합계' : (e.nickname || 'Player'), ts: e.timestamp || 0 });
@@ -1469,18 +1588,8 @@ class ColorTilesGame {
     ) + 1;
     
     leaderboardList.innerHTML = '';
-
-    // 홈(플레이 전)에서 열렸을 수 있음: 타이틀/메시지 초기화
-    if (this.gameOverTitle && this.gameOverMessage && this.finalScoreElement) {
-      this.gameOverTitle.textContent = '🏆 순위표';
-      this.gameOverMessage.textContent = '';
-      this.finalScoreElement.textContent = '';
-    }
-
-    // 기본: 상위 5개만 우선 노출, 나머지는 스크롤로 확인
-    // (홈 진입 시) 전체 순위를 스크롤로 확인할 수 있도록 제한 없이 사용
-
-    // 기존 구조 유지 변수 (게임 종료 컨텍스트에서만 사용)
+    
+    // 새로운 구조: Top 3 + 점선 + 내 순위 (최대 4개)
     let top3Items = working.slice(0, 3);
     let myAreaItems = [];
     let showDivider = false;
@@ -1518,7 +1627,7 @@ class ColorTilesGame {
         item.innerHTML = `
           <span class="rank">${actualRank}</span>
           <span class="nickname">${entry.nickname || 'Player'}</span>
-          <span class="score">${entry.score.toLocaleString()}</span>
+          <span class="score">${(entry.score ?? 0).toLocaleString()}</span>
         `;
         leaderboardList.appendChild(item);
       });
@@ -1540,14 +1649,14 @@ class ColorTilesGame {
       `;
       leaderboardList.appendChild(item);
     });
-    
+
     // 구분선 추가
     if (showDivider) {
       const divider = document.createElement('div');
       divider.className = 'leaderboard-divider';
       leaderboardList.appendChild(divider);
     }
-    
+
     // 내 주변 렌더링
     myAreaItems.forEach((entry) => {
       const actualRank = working.indexOf(entry) + 1;

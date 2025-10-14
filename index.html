@@ -40,12 +40,11 @@
         <h1>🎮 Color Tiles</h1>
         <div class="player-stats">
           <div class="stat-item">
-            <span id="totalStars">⭐ 0</span> / <span id="totalStarsMax">0</span>
+            <span id="nicknameDisplay">Player</span>
           </div>
           <div class="stat-divider">|</div>
           <div class="stat-item">
-            <span class="stat-label">총점:</span>
-            <span id="totalScoreHome">0</span>점
+            <span id="totalStars">⭐ 0</span> / <span id="totalStarsMax">0</span>
           </div>
         </div>
       </header>
@@ -279,7 +278,7 @@
         <!-- 리더보드 -->
         <div class="leaderboard-container">
           <div class="leaderboard-tabs">
-            <button type="button" class="tab-btn active" data-mode="single">단판</button>
+            <button type="button" class="tab-btn active" data-mode="single">스테이지</button>
             <button type="button" class="tab-btn" data-mode="total">누적</button>
           </div>
           <div id="leaderboardList" class="leaderboard-list"></div>
@@ -316,13 +315,21 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('SW registered: ', registration);
-          })
-          .catch((registrationError) => {
-            console.log('SW registration failed: ', registrationError);
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('SW registered: ', reg);
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            nw && nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                // 대기 중인 SW를 즉시 적용 후 새로고침
+                reg.waiting && reg.waiting.postMessage('SKIP_WAITING');
+                location.reload();
+              }
+            });
           });
+        }).catch((err) => {
+          console.log('SW registration failed: ', err);
+        });
       });
     }
   </script>
