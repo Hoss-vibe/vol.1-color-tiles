@@ -62,11 +62,10 @@ class ColorTilesGame {
     this.timerInterval = null;
     this.nickname = '';
     
-    // 아이템 개수 (테스트용으로 모든 아이템 충분히 지급)
-    // 아이템은 게임 전체에서 고정 수량으로 지급
-    this.hammerCount = 10; // 테스트용으로 10개로 증가
-    this.shuffleCount = 20; // 테스트용으로 20개로 증가
-    this.timeCount = 20; // 테스트용으로 20개로 증가
+    // 아이템 개수 (모두 3개로 통일)
+    this.hammerCount = 3;
+    this.shuffleCount = 3;
+    this.timeCount = 3;
     this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
