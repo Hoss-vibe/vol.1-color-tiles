@@ -40,6 +40,200 @@ body {
   }
 }
 
+/* 홈화면 (스테이지 선택) */
+.home-screen {
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  max-width: 95vw;
+  width: 100%;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+}
+
+@media (min-width: 768px) {
+  .home-screen {
+    max-width: 400px;
+    width: 400px;
+  }
+}
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+}
+
+.home-header {
+  text-align: center;
+}
+
+.home-header h1 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: var(--text-primary);
+}
+
+.player-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-label {
+  font-weight: 600;
+}
+
+.stat-divider {
+  color: var(--border-color);
+}
+
+#totalStars, #totalScoreHome {
+  font-weight: 700;
+  color: var(--accent-blue);
+}
+
+/* 스테이지 그리드 (3열로 변경, 모바일 최적화) */
+.stages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  /* 3열 × 4행(=12개)만 1페이지에 보이도록 높이 제한 후 스크롤 */
+  max-height: 408px; /* 4 * (min-height 90px) + 3 * 12px gap = 396 + 여유 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* WebKit: 스테이지 그리드 스크롤바 숨김 */
+.stages-grid::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.stage-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 15px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  height: 110px; /* 모든 카드 동일 높이 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-card:hover:not(.locked) {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-blue);
+}
+
+.stage-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+}
+
+.stage-card.locked::after {
+  content: "🔒";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+.stage-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stage-stars {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  font-size: 1.3rem;
+}
+
+.star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  min-width: 1.3rem;
+}
+
+.star.empty {
+  opacity: 0.3;
+}
+
+/* 모달 버튼 그룹 */
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 프로그레스바 + 별 표시 */
+.progress-container {
+  margin: 10px 0;
+}
+
+.star-display {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.progress-star {
+  transition: all 0.3s ease;
+}
+
+.progress-star.inactive {
+  opacity: 0.3;
+  transform: scale(0.8);
+  filter: grayscale(1);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 15px;
+  background: var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+  transition: width 1s linear;
+  border-radius: 10px;
+  will-change: width;
+}
+
 .game-container {
   background: var(--bg-secondary);
   border-radius: 20px;
@@ -78,6 +272,51 @@ body {
 .game-header {
   text-align: center;
   margin-bottom: 15px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-left: 3px solid var(--text-primary);
+  border-bottom: 3px solid var(--text-primary);
+  transform: rotate(45deg);
+  margin-left: 2px;
+}
+
+.back-btn:hover {
+  border-color: var(--accent-blue);
+  transform: scale(1.05);
+}
+
+.back-btn:active {
+  transform: scale(0.95);
 }
 
 .game-header h1 {
@@ -267,6 +506,9 @@ body {
 }
 .tile.color-11 { 
   background: linear-gradient(135deg, #D4FF99 0%, #BFFF00 100%);
+}
+.tile.color-12 {
+  background: linear-gradient(135deg, #B3C7FF 0%, #7FA1FF 100%);
 }
 
 /* 애니메이션 효과 */
@@ -587,6 +829,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 260px; /* 약 5개 아이템 높이 기준 */
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* WebKit: 리더보드 스크롤바 숨김 */
+.leaderboard-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .leaderboard-divider {

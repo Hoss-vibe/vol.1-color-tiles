@@ -33,13 +33,145 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="game-container">
+  <!-- 홈화면 (스테이지 선택) -->
+  <div class="home-screen hidden" id="homeScreen">
+    <div class="home-container">
+      <header class="home-header">
+        <h1>🎮 Color Tiles</h1>
+        <div class="player-stats">
+          <div class="stat-item">
+            <span id="totalStars">⭐ 0</span> / <span id="totalStarsMax">0</span>
+          </div>
+          <div class="stat-divider">|</div>
+          <div class="stat-item">
+            <span class="stat-label">총점:</span>
+            <span id="totalScoreHome">0</span>점
+          </div>
+        </div>
+      </header>
+
+      <div class="stages-grid">
+        <div class="stage-card locked" data-stage="1">
+          <div class="stage-number">1</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="2">
+          <div class="stage-number">2</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="3">
+          <div class="stage-number">3</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="4">
+          <div class="stage-number">4</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="5">
+          <div class="stage-number">5</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="6">
+          <div class="stage-number">6</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="7">
+          <div class="stage-number">7</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="8">
+          <div class="stage-number">8</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="9">
+          <div class="stage-number">9</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="10">
+          <div class="stage-number">10</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="11">
+          <div class="stage-number">11</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="12">
+          <div class="stage-number">12</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+        <div class="stage-card locked" data-stage="13">
+          <div class="stage-number">13</div>
+          <div class="stage-stars">
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+            <span class="star empty">☆</span>
+          </div>
+        </div>
+      </div>
+
+      <button id="leaderboardBtn" class="btn btn-primary btn-large">🏆 순위표 보기</button>
+    </div>
+  </div>
+
+  <!-- 게임 플레이 화면 -->
+  <div class="game-container hidden" id="gameContainer">
     <header class="game-header">
-      <h1>Color Tiles</h1>
+      <div class="header-top">
+        <button id="backToHomeBtn" class="back-btn" title="홈으로" aria-label="뒤로가기"></button>
+        <h1>Color Tiles</h1>
+      </div>
       <div class="stage-info">
         <div class="stage-display">
           <span class="label">Stage:</span>
-          <span id="currentStage">1</span>/<span id="totalStages">4</span>
+          <span id="currentStage">1</span>/<span id="totalStages">8</span>
         </div>
         <div class="total-score-display">
           <span class="label">Total:</span>
@@ -51,12 +183,20 @@
           <span class="label">점수:</span>
           <span id="score">0</span>
         </div>
-        <div class="timer">
-          <span class="label">시간:</span>
-          <span id="timer">50</span>초
-        </div>
       </div>
     </header>
+
+    <!-- 프로그레스바 + 별 표시 -->
+    <div class="progress-container">
+      <div class="star-display">
+        <span class="progress-star active" id="star1">⭐</span>
+        <span class="progress-star active" id="star2">⭐</span>
+        <span class="progress-star active" id="star3">⭐</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
 
     <div class="game-board" id="gameBoard">
       <!-- 게임 타일들이 여기에 동적으로 생성됩니다 -->
@@ -66,21 +206,22 @@
       <div class="item-slots">
         <div class="item-slot" id="hammerItem" data-item="hammer">
           <div class="item-icon">🔨</div>
-          <div class="item-count" id="hammerCount">1</div>
+          <div class="item-count" id="hammerCount">10</div>
           <button class="ad-reward-btn hidden" id="hammerAdBtn" type="button">+1</button>
         </div>
         <div class="item-slot" id="shuffleItem" data-item="shuffle">
           <div class="item-icon">🔄</div>
-          <div class="item-count" id="shuffleCount">1</div>
+          <div class="item-count" id="shuffleCount">20</div>
           <button class="ad-reward-btn hidden" id="shuffleAdBtn" type="button">+1</button>
         </div>
         <div class="item-slot" id="timeItem" data-item="time">
           <div class="item-icon">⏰</div>
-          <div class="item-count" id="timeCount">1</div>
+          <div class="item-count" id="timeCount">20</div>
           <button class="ad-reward-btn hidden" id="timeAdBtn" type="button">+1</button>
         </div>
       </div>
     </div>
+  </div>
 
     <div id="nicknameModal" class="modal">
       <div class="modal-content">
@@ -122,7 +263,10 @@
           <p>획득 점수: <span id="stageClearScore">0</span>점</p>
           <p>총점: <span id="stageClearTotalScore">0</span>점</p>
         </div>
-        <button id="nextStageBtn" class="btn btn-primary btn-large">다음 스테이지</button>
+        <div class="modal-buttons">
+          <button id="nextStageBtn" class="btn btn-primary btn-large">다음 스테이지</button>
+          <button id="exitToHomeBtn" class="btn btn-secondary btn-large">나가기</button>
+        </div>
       </div>
     </div>
 
@@ -134,7 +278,6 @@
         
         <!-- 리더보드 -->
         <div class="leaderboard-container">
-          <h3 class="leaderboard-title">🏆 순위표</h3>
           <div class="leaderboard-tabs">
             <button type="button" class="tab-btn active" data-mode="single">단판</button>
             <button type="button" class="tab-btn" data-mode="total">누적</button>
@@ -188,7 +331,7 @@
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -214,6 +357,9 @@
     window.firebaseQuery = query;
     window.firebaseOrderBy = orderBy;
     window.firebaseLimit = limit;
+    window.firebaseWhere = where;
+    window.firebaseDoc = doc;
+    window.firebaseUpdateDoc = updateDoc;
   </script>
 
   <script src="script.js"></script>

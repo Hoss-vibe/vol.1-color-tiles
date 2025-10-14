@@ -1,6 +1,6 @@
 class ColorTilesGame {
   constructor() {
-    // 스테이지 설정 (8개로 확장, 모든 스테이지 50초 고정, 8x8 고정)
+    // 스테이지 설정 (13개로 확장, 모든 스테이지 50초 고정, 8x8 고정)
     this.stageConfigs = [
       { boardSize: 8, numColors: 5, timeLimit: 50 },   // Stage 1
       { boardSize: 8, numColors: 6, timeLimit: 50 },   // Stage 2
@@ -9,12 +9,22 @@ class ColorTilesGame {
       { boardSize: 8, numColors: 9, timeLimit: 50 },   // Stage 5
       { boardSize: 8, numColors: 10, timeLimit: 50 },  // Stage 6
       { boardSize: 8, numColors: 11, timeLimit: 50 },  // Stage 7
-      { boardSize: 8, numColors: 12, timeLimit: 50 }   // Stage 8 (최대 8x8, 12색)
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 8
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 9
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 10
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 11
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 12
+      { boardSize: 8, numColors: 13, timeLimit: 50 }   // Stage 13 (신규 색상 포함)
     ];
     
     this.currentStage = 1; // 기본값으로 1스테이지로 시작
-    this.totalStages = 8;
+    this.totalStages = 13;
     this.totalScore = 0;
+    
+    // 홈화면 관련
+    this.homeScreen = document.getElementById('homeScreen');
+    this.gameContainer = document.getElementById('gameContainer');
+    this.stageData = null; // 스테이지별 데이터 (비동기 로드)
     
     // 더블 클릭 확대 방지
     document.addEventListener('dblclick', (e) => {
@@ -62,10 +72,10 @@ class ColorTilesGame {
     this.timerInterval = null;
     this.nickname = '';
     
-    // 아이템 개수 (모두 3개로 통일)
-    this.hammerCount = 3;
-    this.shuffleCount = 3;
-    this.timeCount = 3;
+    // 아이템 개수 (테스트용: 모두 20개)
+    this.hammerCount = 20;
+    this.shuffleCount = 20;
+    this.timeCount = 20;
     this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
@@ -80,17 +90,19 @@ class ColorTilesGame {
       'color-8',  // 진한 오렌지
       'color-9',  // 진한 시안
       'color-10', // 파스텔 로즈
-      'color-11'  // 파스텔 라임
+      'color-11', // 파스텔 라임
+      'color-12'  // 파스텔 네이비
     ];
     
     this.initializeEventListeners();
     this.initializeBoard();
+    // 고유 플레이어 ID (로컬 1회 생성 후 유지)
+    this.playerId = this.getOrCreatePlayerId();
+
+    // 닉네임 및 초기 화면 로드
     this.loadNickname();
     this.updateStageDisplay();
     this.updateItemDisplay();
-    
-    // 고유 플레이어 ID (로컬 1회 생성 후 유지)
-    this.playerId = this.getOrCreatePlayerId();
     // 기본 리더보드 모드: 단판
     this.leaderboardMode = 'single';
 
@@ -101,24 +113,38 @@ class ColorTilesGame {
   }
   
   initializeEventListeners() {
-    this.nicknameSubmitBtn.addEventListener('click', () => this.submitNickname());
-    this.nicknameInput.addEventListener('keypress', (e) => {
+    this.nicknameSubmitBtn.addEventListener('click', async () => await this.submitNickname());
+    this.nicknameInput.addEventListener('keypress', async (e) => {
       if (e.key === 'Enter') {
-        this.submitNickname();
+        await this.submitNickname();
       }
     });
     this.startGameBtn.addEventListener('click', () => this.startGame());
     // reset 버튼은 삭제됨
-    this.playAgainBtn.addEventListener('click', () => this.resetGame());
+    this.playAgainBtn.addEventListener('click', () => {
+      this.gameOverModal.classList.add('hidden');
+      this.showHomeScreen();
+    });
     this.nextStageBtn.addEventListener('click', async () => await this.nextStage());
     
-    // 리더보드 탭 전환
+    // 나가기 버튼 (스테이지 클리어 모달에서 홈으로)
+    const exitToHomeBtn = document.getElementById('exitToHomeBtn');
+    if (exitToHomeBtn) {
+      exitToHomeBtn.addEventListener('click', () => {
+        this.stageClearModal.classList.add('hidden');
+        this.showHomeScreen();
+      });
+    }
+    
+    // 리더보드 탭 전환 (탭 변경 시 항상 상단(1등)부터 보이도록 스크롤/데이터 초기화)
     const tabs = document.querySelectorAll('.leaderboard-tabs .tab-btn');
     tabs.forEach((btn) => {
       btn.addEventListener('click', async () => {
         tabs.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.leaderboardMode = btn.dataset.mode; // 'single' | 'total'
+        const list = document.getElementById('leaderboardList');
+        if (list) list.scrollTop = 0; // 항상 상단으로
         await this.displayLeaderboard();
       });
     });
@@ -182,7 +208,9 @@ class ColorTilesGame {
             return;
           }
           this.nickname = nickname;
-          localStorage.setItem('colorTilesNickname', nickname);
+          if (!this.stageData) this.stageData = await this.loadStageData();
+          this.stageData.nickname = nickname;
+          await this.saveStageData();
           this.nicknameInput.readOnly = true;
           editBtn.textContent = '변경';
           await this.alertModal('완료', '닉네임이 변경되었습니다. 누적 데이터는 최신 닉네임으로 표시됩니다.');
@@ -190,6 +218,32 @@ class ColorTilesGame {
       });
     } else {
       console.error('닉네임 변경 버튼을 찾을 수 없음');
+    }
+
+    // 홈화면 순위표 버튼
+    const leaderboardBtn = document.getElementById('leaderboardBtn');
+    if (leaderboardBtn) {
+      leaderboardBtn.addEventListener('click', async () => {
+        await this.displayLeaderboard();
+        // 홈에서 열 때는 제목을 '🏆 순위표'로 보여주고 최종점수는 숨김
+        if (this.gameOverTitle) {
+          this.gameOverTitle.textContent = '🏆 순위표';
+          this.gameOverTitle.classList.remove('hidden');
+        }
+        const finalScoreTextEl = document.querySelector('.final-score-text');
+        if (finalScoreTextEl) finalScoreTextEl.classList.add('hidden');
+        if (this.gameOverMessage) this.gameOverMessage.textContent = '';
+        this.gameOverModal.classList.remove('hidden');
+      });
+    }
+
+    // 상단 뒤로가기 버튼: 타이머 정지 후 홈으로
+    const backToHomeBtn = document.getElementById('backToHomeBtn');
+    if (backToHomeBtn) {
+      backToHomeBtn.addEventListener('click', () => {
+        this.stopTimer();
+        this.showHomeScreen();
+      });
     }
   }
 
@@ -255,6 +309,186 @@ class ColorTilesGame {
       localStorage.setItem(key, id);
     }
     return id;
+  }
+
+  // 스테이지 데이터 로드 (Firebase)
+  async loadStageData() {
+    try {
+      if (!window.db) {
+        console.error('Firebase가 로드되지 않았습니다.');
+        return this.getInitialStageData();
+      }
+
+      // Firestore에서 사용자 데이터 가져오기
+      const usersCollection = window.firebaseCollection(window.db, 'users');
+      const q = window.firebaseQuery(usersCollection, window.firebaseWhere('playerId', '==', this.playerId));
+      const querySnapshot = await window.firebaseGetDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        return {
+          stages: userData.stages || this.getInitialStageData().stages,
+          totalStars: userData.totalStars || 0,
+          totalScore: userData.totalScore || 0,
+          nickname: userData.nickname || '',
+          docId: querySnapshot.docs[0].id
+        };
+      } else {
+        // 신규 유저
+        return this.getInitialStageData();
+      }
+    } catch (error) {
+      console.error('Firebase 불러오기 실패:', error);
+      return this.getInitialStageData();
+    }
+  }
+
+  // 초기 스테이지 데이터 생성
+  getInitialStageData() {
+    const length = this.stageConfigs?.length || 8;
+    return {
+      stages: Array.from({ length }, (_, i) => ({
+        stage: i + 1,
+        stars: 0,
+        score: 0,
+        cleared: false,
+        unlocked: i === 0 // Stage 1만 해제
+      })),
+      totalStars: 0,
+      totalScore: 0,
+      docId: null
+    };
+  }
+
+  // 스테이지 데이터 저장 (Firebase)
+  async saveStageData() {
+    try {
+      if (!window.db) {
+        console.error('Firebase가 로드되지 않았습니다.');
+        return;
+      }
+
+      const usersCollection = window.firebaseCollection(window.db, 'users');
+      
+      const userData = {
+        playerId: this.playerId,
+        nickname: this.nickname,
+        stages: this.stageData.stages,
+        totalStars: this.stageData.stages.reduce((sum, stage) => sum + stage.stars, 0),
+        totalScore: this.stageData.stages.reduce((sum, stage) => sum + stage.score, 0),
+        lastUpdated: new Date().toISOString()
+      };
+
+      if (this.stageData.docId) {
+        // 기존 문서 업데이트
+        const userDoc = window.firebaseDoc(window.db, 'users', this.stageData.docId);
+        await window.firebaseUpdateDoc(userDoc, userData);
+      } else {
+        // 새 문서 생성
+        const docRef = await window.firebaseAddDoc(usersCollection, userData);
+        this.stageData.docId = docRef.id;
+      }
+    } catch (error) {
+      console.error('Firebase 저장 실패:', error);
+    }
+  }
+
+  // 홈화면 표시
+  showHomeScreen() {
+    this.homeScreen.classList.remove('hidden');
+    this.gameContainer.classList.add('hidden');
+    this.updateHomeScreen();
+  }
+
+  // 홈화면 업데이트
+  updateHomeScreen() {
+    // 총 별/총점 계산
+    const totalStars = this.stageData.stages.reduce((sum, stage) => sum + stage.stars, 0);
+    const totalScore = this.stageData.stages.reduce((sum, stage) => sum + stage.score, 0);
+    const totalStages = this.stageConfigs.length;
+    const totalStarsMax = totalStages * 3;
+    
+    document.getElementById('totalStars').textContent = `⭐ ${totalStars}`;
+    const maxEl = document.getElementById('totalStarsMax');
+    if (maxEl) maxEl.textContent = totalStarsMax.toString();
+    document.getElementById('totalScoreHome').textContent = totalScore.toLocaleString();
+
+    // 스테이지 카드 업데이트
+    document.querySelectorAll('.stage-card').forEach((card) => {
+      const stageNum = parseInt(card.dataset.stage);
+      const stageInfo = this.stageData.stages[stageNum - 1];
+
+      // 잠금/해제 처리
+      if (stageInfo.unlocked) {
+        card.classList.remove('locked');
+        card.style.cursor = 'pointer';
+        
+        // 별 표시
+        const stars = card.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+          if (index < stageInfo.stars) {
+            star.textContent = '⭐';
+            star.classList.remove('empty');
+          } else {
+            star.textContent = '☆';
+            star.classList.add('empty');
+          }
+        });
+
+        // 클릭 이벤트
+        card.onclick = () => this.startStage(stageNum);
+      } else {
+        card.classList.add('locked');
+        card.style.cursor = 'not-allowed';
+        card.onclick = null;
+      }
+    });
+  }
+
+  // 스테이지 시작
+  startStage(stageNum) {
+    this.currentStage = stageNum;
+    this.totalScore = 0;
+    
+    // 스테이지 설정 적용
+    const config = this.stageConfigs[stageNum - 1];
+    this.boardSize = config.boardSize;
+    this.numColors = config.numColors;
+    this.timeLeft = config.timeLimit;
+    
+    // 화면 전환
+    this.homeScreen.classList.add('hidden');
+    this.gameContainer.classList.remove('hidden');
+    
+    // 게임 시작
+    this.startGame();
+  }
+
+  // 시간 기반 별 계산
+  getStarsByTime(timeLeft, timeLimit) {
+    const ratio = timeLeft / timeLimit;
+    if (ratio >= 0.6) return 3; // 60% 이상 (30초/50초)
+    if (ratio >= 0.3) return 2; // 30% 이상 (15초/50초)
+    return 1;
+  }
+
+  // 프로그레스바 업데이트
+  updateProgressBar() {
+    const progressFill = document.getElementById('progressFill');
+    const star1 = document.getElementById('star1');
+    const star2 = document.getElementById('star2');
+    const star3 = document.getElementById('star3');
+
+    // 프로그레스바
+    const percentage = (this.timeLeft / this.stageConfigs[this.currentStage - 1].timeLimit) * 100;
+    progressFill.style.width = `${percentage}%`;
+
+    // 별 표시
+    const currentStars = this.getStarsByTime(this.timeLeft, this.stageConfigs[this.currentStage - 1].timeLimit);
+    
+    star1.classList.toggle('inactive', currentStars < 1);
+    star2.classList.toggle('inactive', currentStars < 2);
+    star3.classList.toggle('inactive', currentStars < 3);
   }
   
   initializeBoard() {
@@ -354,7 +588,7 @@ class ColorTilesGame {
     });
   }
   
-  submitNickname() {
+  async submitNickname() {
     const nickname = this.nicknameInput.value.trim();
     if (!nickname) {
       alert('닉네임을 입력해주세요!');
@@ -362,19 +596,29 @@ class ColorTilesGame {
     }
     
     this.nickname = nickname;
-    // localStorage에 닉네임 저장
-    localStorage.setItem('colorTilesNickname', nickname);
+    // Firebase users 문서 갱신을 위해 stageData 로드 (없으면 초기)
+    if (!this.stageData) {
+      this.stageData = await this.loadStageData();
+    }
+    this.stageData.nickname = nickname;
+    await this.saveStageData();
     
-    // 닉네임 모달 닫고 게임 방법 모달 열기
+    // 스테이지 데이터 최신 로드
+    this.stageData = await this.loadStageData();
+    
+    // 닉네임 모달 닫고 홈화면 표시
     this.nicknameModal.classList.add('hidden');
-    this.instructionsModal.classList.remove('hidden');
+    this.showHomeScreen();
   }
   
-  loadNickname() {
-    const saved = localStorage.getItem('colorTilesNickname');
-    if (saved) {
-      this.nickname = saved;
-      this.nicknameInput.value = saved;
+  async loadNickname() {
+    // Firebase에서 stage/user 데이터 로드 후 닉네임 사용
+    this.stageData = await this.loadStageData();
+    if (this.stageData?.nickname) {
+      this.nickname = this.stageData.nickname;
+      if (this.nicknameInput) this.nicknameInput.value = this.nickname;
+      this.nicknameModal.classList.add('hidden');
+      this.showHomeScreen();
     }
   }
   
@@ -387,8 +631,13 @@ class ColorTilesGame {
     // 게임 시작 시에만 지급된 아이템으로 진행 (스테이지 간 리셋 없음)
     this.activeItem = null;
     
+    // 보드 초기화
+    this.initializeBoard();
+    
     this.updateDisplay();
     this.updateItemDisplay();
+    this.updateStageDisplay();
+    this.updateProgressBar();
     this.instructionsModal.classList.add('hidden');
     this.startTimer();
   }
@@ -401,10 +650,10 @@ class ColorTilesGame {
     this.boardSize = this.stageConfigs[0].boardSize;
     this.numColors = this.stageConfigs[0].numColors;
     this.timeLeft = this.stageConfigs[0].timeLimit;
-    // 아이템 재지급 (테스트용으로 모든 아이템 충분히 지급)
-    this.hammerCount = 10; // 테스트용으로 10개로 증가
-    this.shuffleCount = 20; // 테스트용으로 20개로 증가
-    this.timeCount = 20; // 테스트용으로 20개로 증가
+    // 아이템 재지급 (테스트용: 모두 20개)
+    this.hammerCount = 20;
+    this.shuffleCount = 20;
+    this.timeCount = 20;
     this.activeItem = null;
     this.stopTimer();
     this.updateDisplay();
@@ -420,6 +669,7 @@ class ColorTilesGame {
     this.timerInterval = setInterval(async () => {
       this.timeLeft--;
       this.updateDisplay();
+      this.updateProgressBar(); // 프로그레스바 업데이트
       
       if (this.timeLeft <= 0) {
         await this.endGame('timeout');
@@ -435,9 +685,10 @@ class ColorTilesGame {
   }
   
   updateDisplay() {
-    this.scoreElement.textContent = this.score;
-    this.timerElement.textContent = this.timeLeft;
-    this.totalScoreElement.textContent = this.totalScore;
+    if (this.scoreElement) this.scoreElement.textContent = this.score;
+    // timer UI는 제거되었으므로 존재할 때만 갱신
+    if (this.timerElement) this.timerElement.textContent = this.timeLeft;
+    if (this.totalScoreElement) this.totalScoreElement.textContent = this.totalScore;
   }
   
   updateStageDisplay() {
@@ -476,6 +727,27 @@ class ColorTilesGame {
   async clearStage() {
     this.gameActive = false;
     this.stopTimer();
+    
+    // 별점 계산 (시간 기반)
+    const stars = this.getStarsByTime(this.timeLeft, this.stageConfigs[this.currentStage - 1].timeLimit);
+    
+    // 스테이지 데이터 업데이트
+    const stageInfo = this.stageData.stages[this.currentStage - 1];
+    stageInfo.cleared = true;
+    if (this.score > stageInfo.score) {
+      stageInfo.score = this.score;
+    }
+    if (stars > stageInfo.stars) {
+      stageInfo.stars = stars;
+    }
+    
+    // 다음 스테이지 해제
+    if (this.currentStage < this.totalStages) {
+      this.stageData.stages[this.currentStage].unlocked = true;
+    }
+    
+    // 데이터 저장
+    this.saveStageData();
     
     // 총점에 현재 점수 추가 (스테이지 클리어 시에만)
     this.totalScore += this.score;
@@ -1197,8 +1469,18 @@ class ColorTilesGame {
     ) + 1;
     
     leaderboardList.innerHTML = '';
-    
-    // 새로운 구조: Top 3 + 점선 + 내 순위 (최대 4개)
+
+    // 홈(플레이 전)에서 열렸을 수 있음: 타이틀/메시지 초기화
+    if (this.gameOverTitle && this.gameOverMessage && this.finalScoreElement) {
+      this.gameOverTitle.textContent = '🏆 순위표';
+      this.gameOverMessage.textContent = '';
+      this.finalScoreElement.textContent = '';
+    }
+
+    // 기본: 상위 5개만 우선 노출, 나머지는 스크롤로 확인
+    // (홈 진입 시) 전체 순위를 스크롤로 확인할 수 있도록 제한 없이 사용
+
+    // 기존 구조 유지 변수 (게임 종료 컨텍스트에서만 사용)
     let top3Items = working.slice(0, 3);
     let myAreaItems = [];
     let showDivider = false;
@@ -1227,7 +1509,23 @@ class ColorTilesGame {
       }
     }
     
-    // Top 3 렌더링
+    // 홈 진입: 전체 렌더링(스크롤 영역에서 모두 확인)
+    if (!this.gameActive) {
+      working.forEach((entry) => {
+        const actualRank = working.indexOf(entry) + 1;
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.innerHTML = `
+          <span class="rank">${actualRank}</span>
+          <span class="nickname">${entry.nickname || 'Player'}</span>
+          <span class="score">${entry.score.toLocaleString()}</span>
+        `;
+        leaderboardList.appendChild(item);
+      });
+      return;
+    }
+
+    // 게임 종료 컨텍스트: Top 3 + (구분선) + 내 영역
     top3Items.forEach((entry) => {
       const actualRank = working.indexOf(entry) + 1;
       const isMe = (actualRank === myRank);
