@@ -37,127 +37,153 @@
   <div class="home-screen hidden" id="homeScreen">
     <div class="home-container">
       <header class="home-header">
-        <h1>🎮 Color Tiles</h1>
-        <div class="player-stats">
-          <div class="stat-item">
-            <span id="nicknameDisplay">Player</span>
-            <button id="changeNicknameBtn" class="nickname-edit-btn" title="닉네임 변경">🔄</button>
+        <div class="header-top">
+          <button class="slider-arrow left" id="sliderLeft" aria-label="이전"></button>
+          <div class="header-center">
+            <h1>🎮 Color Tiles</h1>
+            <div class="player-stats">
+              <div class="stat-item">
+                <span id="nicknameDisplay">Player</span>
+                <button id="changeNicknameBtn" class="nickname-edit-btn" title="닉네임 변경">🔄</button>
+              </div>
+              <div class="stat-divider">|</div>
+              <div class="stat-item">
+                <span id="totalStars">⭐ 0</span> / <span id="totalStarsMax">0</span>
+              </div>
+            </div>
           </div>
-          <div class="stat-divider">|</div>
-          <div class="stat-item">
-            <span id="totalStars">⭐ 0</span> / <span id="totalStarsMax">0</span>
-          </div>
+          <button class="slider-arrow right" id="sliderRight" aria-label="다음"></button>
         </div>
       </header>
 
-      <div class="stages-grid">
-        <div class="stage-card locked" data-stage="1">
-          <div class="stage-number">1</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
+      <!-- 게임 슬라이더 -->
+      <div class="game-slider">
+        <div class="game-cards">
+          <!-- Color Tiles 게임 카드 -->
+          <div class="game-card active" data-game="colorTiles">
+            <div class="stages-grid">
+              <div class="stage-card locked" data-stage="1">
+                <div class="stage-number">1</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="2">
+                <div class="stage-number">2</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="3">
+                <div class="stage-number">3</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="4">
+                <div class="stage-number">4</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="5">
+                <div class="stage-number">5</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="6">
+                <div class="stage-number">6</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="7">
+                <div class="stage-number">7</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="8">
+                <div class="stage-number">8</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="9">
+                <div class="stage-number">9</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="10">
+                <div class="stage-number">10</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="11">
+                <div class="stage-number">11</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="12">
+                <div class="stage-number">12</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+              <div class="stage-card locked" data-stage="13">
+                <div class="stage-number">13</div>
+                <div class="stage-stars">
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                  <span class="star empty">☆</span>
+                </div>
+              </div>
+            </div>
+            <button id="leaderboardBtn" class="btn btn-primary btn-large">🏆 순위표 보기</button>
           </div>
-        </div>
-        <div class="stage-card locked" data-stage="2">
-          <div class="stage-number">2</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="3">
-          <div class="stage-number">3</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="4">
-          <div class="stage-number">4</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="5">
-          <div class="stage-number">5</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="6">
-          <div class="stage-number">6</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="7">
-          <div class="stage-number">7</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="8">
-          <div class="stage-number">8</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="9">
-          <div class="stage-number">9</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="10">
-          <div class="stage-number">10</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="11">
-          <div class="stage-number">11</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="12">
-          <div class="stage-number">12</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-          </div>
-        </div>
-        <div class="stage-card locked" data-stage="13">
-          <div class="stage-number">13</div>
-          <div class="stage-stars">
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
-            <span class="star empty">☆</span>
+
+          <!-- Memory Game 카드 -->
+          <div class="game-card" data-game="memory">
+            <div class="memory-preview">
+              <div class="preview-cards">
+                <div class="preview-card">🂠</div>
+                <div class="preview-card">🍎</div>
+                <div class="preview-card">🂠</div>
+                <div class="preview-card">🍎</div>
+              </div>
+            </div>
+            <button id="playMemoryBtn" class="btn btn-primary btn-large">게임 시작</button>
           </div>
         </div>
       </div>
-
-      <button id="leaderboardBtn" class="btn btn-primary btn-large">🏆 순위표 보기</button>
     </div>
   </div>
 
@@ -200,7 +226,7 @@
 
     <div class="game-board" id="gameBoard">
       <!-- 게임 타일들이 여기에 동적으로 생성됩니다 -->
-    </div>
+        </div>
 
     <div class="game-controls">
       <div class="item-slots">
@@ -220,6 +246,34 @@
           <button class="ad-reward-btn hidden" id="timeAdBtn" type="button">+1</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 메모리 게임 화면 (독립 컨테이너) -->
+  <div class="game-container hidden" id="memoryGame">
+    <header class="game-header">
+      <div class="header-top">
+        <button id="memoryBackBtn" class="back-btn" title="홈으로" aria-label="뒤로가기"></button>
+        <h1>Memory Game</h1>
+      </div>
+      <div class="stage-info">
+        <div class="stage-display">
+          <span class="label">Moves:</span>
+          <span id="memoryMoves">0</span>
+        </div>
+        <div class="total-score-display">
+          <span class="label">시간:</span>
+          <span id="memoryTime">0</span>s
+        </div>
+      </div>
+    </header>
+
+    <div class="memory-board" id="memoryBoard">
+      <!-- 메모리 카드가 동적으로 생성됩니다 -->
+    </div>
+
+    <div class="game-controls">
+      <button id="memoryRestartBtn" class="btn btn-primary">다시 시작</button>
     </div>
   </div>
 
@@ -268,7 +322,7 @@
           <button id="exitToHomeBtn" class="btn btn-secondary btn-large">나가기</button>
         </div>
       </div>
-    </div>
+      </div>
 
     <div id="gameOverModal" class="modal hidden">
       <div class="modal-content modal-wide">
@@ -288,7 +342,7 @@
         <button id="playAgainBtn" class="btn btn-primary">다시 플레이</button>
       </div>
     </div>
-  </div>
+      </div>
 
   <!-- 커스텀 알럿/컨펌 -->
   <div id="alertModal" class="modal hidden">
@@ -370,6 +424,24 @@
     window.firebaseUpdateDoc = updateDoc;
   </script>
 
-  <script src="script.js"></script>
+  <!-- 게임 모듈들 -->
+  <script type="module" src="js/ColorTilesGame.js"></script>
+  <script type="module" src="js/MemoryGame.js"></script>
+  <script type="module" src="js/GameManager.js"></script>
+  
+  <!-- 메인 초기화 -->
+  <script type="module">
+    import { ColorTilesGame } from './js/ColorTilesGame.js';
+    import { MemoryGame } from './js/MemoryGame.js';
+    import { GameManager } from './js/GameManager.js';
+    
+    // 게임 초기화
+    const colorTilesGame = new ColorTilesGame();
+    const gameManager = new GameManager();
+    
+    // 전역에서 접근 가능하도록 설정
+    window.colorTilesGame = colorTilesGame;
+    window.gameManager = gameManager;
+  </script>
 </body>
 </html>

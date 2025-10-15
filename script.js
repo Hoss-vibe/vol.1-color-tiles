@@ -24,6 +24,18 @@ class ColorTilesGame {
     // 홈화면 관련
     this.homeScreen = document.getElementById('homeScreen');
     this.gameContainer = document.getElementById('gameContainer');
+    // Memory Game elements
+    this.memoryScreen = document.getElementById('memoryGame');
+    this.memoryBoard = document.getElementById('memoryBoard');
+    this.memoryMovesEl = document.getElementById('memoryMoves');
+    this.memoryTimeEl = document.getElementById('memoryTime');
+    
+    // 게임 슬라이더 관련
+    this.currentGameIndex = 0;
+    this.games = ['colorTiles', 'memory'];
+    this.sliderLeft = document.getElementById('sliderLeft');
+    this.sliderRight = document.getElementById('sliderRight');
+    this.gameCards = document.querySelectorAll('.game-card');
     this.stageData = null; // 스테이지별 데이터 (비동기 로드)
     
     // 더블 클릭 확대 방지
@@ -174,8 +186,8 @@ class ColorTilesGame {
         btn.addEventListener('click', async () => {
           if (this.adRewardUsed[type]) {
             await this.alertModal('알림', '이미 보상을 받으셨습니다.');
-            return;
-          }
+      return;
+    }
           const ok = await this.confirmModal('광고 보기', '광고를 보면 해당 아이템을 +1 지급합니다. 진행할까요?');
           if (!ok) return;
           await new Promise(r => setTimeout(r, 2000));
@@ -209,7 +221,7 @@ class ColorTilesGame {
           this.nicknameInput.readOnly = false;
           this.nicknameInput.focus();
           editBtn.textContent = '완료';
-        } else {
+    } else {
           const nickname = this.nicknameInput.value.trim();
           if (!nickname) {
             await this.alertModal('알림', '닉네임을 입력해주세요!');
@@ -259,8 +271,164 @@ class ColorTilesGame {
         this.showHomeScreen();
       });
     }
+
+    // 게임 슬라이더 네비게이션
+    if (this.sliderLeft) {
+      this.sliderLeft.addEventListener('click', () => this.previousGame());
+    }
+    if (this.sliderRight) {
+      this.sliderRight.addEventListener('click', () => this.nextGame());
+    }
+
+    // Memory Game 시작 버튼
+    const playMemoryBtn = document.getElementById('playMemoryBtn');
+    if (playMemoryBtn) {
+      playMemoryBtn.addEventListener('click', () => this.showMemoryGame());
+    }
+
+    // Memory Game navigation
+    const memoryBackBtn = document.getElementById('memoryBackBtn');
+    if (memoryBackBtn) {
+      memoryBackBtn.addEventListener('click', () => this.showHomeScreen());
+    }
+
+    const memoryRestartBtn = document.getElementById('memoryRestartBtn');
+    if (memoryRestartBtn) {
+      memoryRestartBtn.addEventListener('click', () => this.initMemoryGame());
+    }
+
+    // in-game nav removed
   }
 
+  // ===== Memory Game (minimal) =====
+  showMemoryGame() {
+    if (!this.memoryScreen) return;
+    this.homeScreen.classList.add('hidden');
+    this.gameContainer.classList.add('hidden');
+    this.memoryScreen.classList.remove('hidden');
+    this.initMemoryGame();
+  }
+
+  initMemoryGame() {
+    if (!this.memoryBoard) return;
+    // 4x4 = 8쌍 이모지
+    const icons = ['🍎','🍌','🍇','🍉','🍓','🥝','🍑','🍍'];
+    const deck = [...icons, ...icons]
+      .sort(() => Math.random() - 0.5)
+      .map((icon, idx) => ({ id: idx, icon, matched: false }));
+
+    this.memoryState = {
+      deck,
+      flipped: [], // indices
+      moves: 0,
+      matchedCount: 0,
+      timer: 0,
+      timerId: null,
+    };
+
+    // 타이머 시작
+    if (this.memoryState.timerId) clearInterval(this.memoryState.timerId);
+    this.memoryState.timer = 0;
+    this.memoryState.timerId = setInterval(() => {
+      this.memoryState.timer += 1;
+      if (this.memoryTimeEl) this.memoryTimeEl.textContent = String(this.memoryState.timer);
+    }, 1000);
+
+    if (this.memoryMovesEl) this.memoryMovesEl.textContent = '0';
+
+    // 렌더
+    this.renderMemoryBoard();
+  }
+
+  renderMemoryBoard() {
+    if (!this.memoryBoard) return;
+    this.memoryBoard.innerHTML = '';
+    this.memoryState.deck.forEach((card, index) => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'memory-card' + (card.matched ? ' matched' : '');
+      const inner = document.createElement('div');
+      inner.className = 'memory-card-inner';
+      const front = document.createElement('div');
+      front.className = 'memory-face memory-front';
+      front.textContent = '🂠';
+      const back = document.createElement('div');
+      back.className = 'memory-face memory-back';
+      back.textContent = card.icon;
+      inner.appendChild(front);
+      inner.appendChild(back);
+      cardEl.appendChild(inner);
+      
+      // flipped 표시
+      const isFlipped = this.memoryState.flipped.includes(index) || card.matched;
+      if (isFlipped) cardEl.classList.add('flipped');
+
+      cardEl.addEventListener('click', () => this.onMemoryCardClick(index));
+      this.memoryBoard.appendChild(cardEl);
+    });
+  }
+
+  onMemoryCardClick(index) {
+    const state = this.memoryState;
+    if (!state) return;
+    if (state.flipped.length === 2) return; // 비교 중
+    if (state.flipped.includes(index)) return; // 이미 뒤집음
+    if (state.deck[index].matched) return;
+
+    state.flipped.push(index);
+    this.renderMemoryBoard();
+
+    if (state.flipped.length === 2) {
+      state.moves += 1;
+      if (this.memoryMovesEl) this.memoryMovesEl.textContent = String(state.moves);
+      const [a, b] = state.flipped;
+      const match = state.deck[a].icon === state.deck[b].icon;
+      if (match) {
+        state.deck[a].matched = true;
+        state.deck[b].matched = true;
+        state.matchedCount += 1;
+        state.flipped = [];
+        this.renderMemoryBoard();
+        if (state.matchedCount === state.deck.length / 2) {
+          clearInterval(state.timerId);
+          this.alertModal('클리어!', `이동 ${state.moves}회, 시간 ${state.timer}s`);
+        }
+      } else {
+        setTimeout(() => {
+          state.flipped = [];
+          this.renderMemoryBoard();
+        }, 700);
+      }
+    }
+  }
+
+  // ===== 게임 슬라이더 =====
+  updateGameSlider() {
+    this.gameCards.forEach((card, index) => {
+      if (index === this.currentGameIndex) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
+    });
+  }
+
+  nextGame() {
+    this.currentGameIndex = (this.currentGameIndex + 1) % this.games.length;
+    this.updateGameSlider();
+  }
+
+  previousGame() {
+    this.currentGameIndex = (this.currentGameIndex - 1 + this.games.length) % this.games.length;
+    this.updateGameSlider();
+  }
+
+  switchToGame(gameType) {
+    if (gameType === 'memory') {
+      this.showMemoryGame();
+    } else if (gameType === 'colorTiles') {
+      this.showHomeScreen();
+    }
+  }
   // 커스텀 알럿/컨펌
   alertModal(title, message) {
     return new Promise((resolve) => {
@@ -379,8 +547,8 @@ class ColorTilesGame {
     try {
       if (!window.db) {
         console.error('Firebase가 로드되지 않았습니다.');
-        return;
-      }
+      return;
+    }
 
       const usersCollection = window.firebaseCollection(window.db, 'users');
       
@@ -411,7 +579,9 @@ class ColorTilesGame {
   showHomeScreen() {
     this.homeScreen.classList.remove('hidden');
     this.gameContainer.classList.add('hidden');
+    if (this.memoryScreen) this.memoryScreen.classList.add('hidden');
     this.updateHomeScreen();
+    this.updateGameSlider();
   }
 
   // 홈화면 업데이트
@@ -803,7 +973,7 @@ class ColorTilesGame {
     if (this.currentStage >= this.totalStages) {
       // 마지막 스테이지 클리어 - 게임 완료
       await this.endGame('allclear');
-    } else {
+      } else {
       // 다음 스테이지로
       this.stageClearModal.classList.remove('hidden');
     }
@@ -1163,8 +1333,8 @@ class ColorTilesGame {
     // 시간이 0이 되면 게임 종료
     if (this.timeLeft <= 0) {
       await this.endGame('timeout');
-      return;
-    }
+          return;
+        }
     
     // 잘못된 클릭 애니메이션
     const tiles = this.gameBoard.querySelectorAll('.tile.empty');
@@ -1316,7 +1486,7 @@ class ColorTilesGame {
     // 보드가 비어있으면 게임 종료
     if (this.isBoardEmpty()) {
       await this.endGame('clear');
-    } else {
+      } else {
       // 망치가 없고 움직일 수도 없으면 게임 종료
       if (this.hammerCount === 0 && !this.hasValidMoves()) {
         await this.endGame('nomoves');

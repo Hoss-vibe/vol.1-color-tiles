@@ -69,6 +69,23 @@ body {
   text-align: center;
 }
 
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 기본: 가운데 정렬 (플레이 화면) */
+  gap: 15px;
+}
+
+/* 홈 헤더는 좌우 화살표가 있으므로 양쪽 배치 유지 */
+.home-header .header-top {
+  justify-content: space-between;
+}
+
+.header-center {
+  flex: 1;
+  text-align: center;
+}
+
 .home-header h1 {
   font-size: 2rem;
   margin-bottom: 15px;
@@ -127,6 +144,138 @@ body {
 #nicknameDisplay {
   font-weight: 700;
   color: var(--text-primary);
+}
+
+/* 게임 슬라이더 */
+.game-slider {
+  margin: 20px 0;
+}
+
+.slider-arrow {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.slider-arrow.left::before,
+.slider-arrow.right::before {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-left: 3px solid var(--text-primary);
+  border-bottom: 3px solid var(--text-primary);
+}
+
+.slider-arrow.left::before {
+  transform: rotate(45deg);
+  margin-left: 4px;
+}
+
+.slider-arrow.right::before {
+  transform: rotate(-135deg);
+  margin-right: 4px;
+}
+
+.slider-arrow:hover {
+  border-color: var(--accent-blue);
+  transform: scale(1.05);
+}
+
+.slider-arrow:active {
+  transform: scale(0.95);
+}
+
+.game-cards {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.game-card {
+  display: none;
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border-radius: 15px;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.game-card.active {
+  display: block;
+}
+
+/* 게임 카드 내부 스테이지 그리드 스타일 */
+.game-card .stages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-height: 408px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  margin: 20px 0;
+}
+
+.game-card .stages-grid::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.game-card h3 {
+  font-size: 1.5rem;
+  margin: 10px 0 5px 0;
+  color: var(--text-primary);
+}
+
+.game-card p {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.game-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.memory-preview {
+  margin: 20px 0;
+}
+
+.preview-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-width: 120px;
+  margin: 0 auto;
+}
+
+.preview-card {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow);
 }
 
 /* 스테이지 그리드 (3열로 변경, 모바일 최적화) */
@@ -301,12 +450,11 @@ body {
 }
 
 .header-top {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
   margin-bottom: 10px;
 }
+
+/* in-game nav removed */
 
 .back-btn {
   position: absolute;
@@ -438,6 +586,62 @@ body {
   margin-right: auto;
   position: relative;
   overflow: visible;
+}
+
+/* Memory Game */
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: var(--border-color);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 10px auto 15px;
+  max-width: 95vw;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.memory-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  perspective: 800px;
+}
+
+.memory-card-inner {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.4s ease;
+  transform-style: preserve-3d;
+}
+
+.memory-card.flipped .memory-card-inner {
+  transform: rotateY(180deg);
+}
+
+.memory-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  user-select: none;
+}
+
+.memory-front {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+.memory-back {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #fff;
+  transform: rotateY(180deg);
 }
 
 .tile {
