@@ -90,6 +90,27 @@ body {
   gap: 5px;
 }
 
+.nickname-edit-btn {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nickname-edit-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.nickname-edit-btn:active {
+  transform: scale(0.95);
+}
+
 .stat-label {
   font-weight: 600;
 }

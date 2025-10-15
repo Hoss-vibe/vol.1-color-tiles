@@ -44,6 +44,8 @@ class ColorTilesGame {
     this.nicknameModal = document.getElementById('nicknameModal');
     this.nicknameInput = document.getElementById('nicknameInput');
     this.nicknameSubmitBtn = document.getElementById('nicknameSubmitBtn');
+    this.changeNicknameBtn = document.getElementById('changeNicknameBtn');
+    this.nicknameDisplay = document.getElementById('nicknameDisplay');
     this.startGameBtn = document.getElementById('startGameBtn');
     // resetBtn 제거: 게임 종료 모달에서만 재시작
     this.playAgainBtn = document.getElementById('playAgainBtn');
@@ -119,6 +121,12 @@ class ColorTilesGame {
         await this.submitNickname();
       }
     });
+    
+    // 닉네임 변경 버튼
+    if (this.changeNicknameBtn) {
+      this.changeNicknameBtn.addEventListener('click', () => this.openChangeNicknameModal());
+    }
+    
     this.startGameBtn.addEventListener('click', () => this.startGame());
     // reset 버튼은 삭제됨
     this.playAgainBtn.addEventListener('click', () => {
@@ -630,12 +638,32 @@ class ColorTilesGame {
     if (saved) {
       this.nickname = saved;
       this.nicknameInput.value = saved;
+      // 닉네임 표시 업데이트
+      if (this.nicknameDisplay) {
+        this.nicknameDisplay.textContent = saved;
+      }
       // 스테이지 데이터 로드
       this.stageData = await this.loadStageData();
       // 닉네임이 있으면 바로 홈화면으로
       this.nicknameModal.classList.add('hidden');
       this.showHomeScreen();
     }
+  }
+  
+  openChangeNicknameModal() {
+    // 확인 모달 띄우기
+    this.confirmModal(
+      '닉네임 변경',
+      '닉네임을 변경하시겠습니까?\n변경 후에는 이전 닉네임의 기록은 사라집니다.'
+    ).then((confirmed) => {
+      if (confirmed) {
+        // 닉네임 입력 모달 열기
+        this.nicknameInput.value = '';
+        this.nicknameInput.readOnly = false; // 입력 가능하도록 설정
+        this.nicknameModal.classList.remove('hidden');
+        this.homeScreen.classList.add('hidden');
+      }
+    });
   }
   
   startGame() {
