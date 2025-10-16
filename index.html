@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Color Tiles">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.svg">
   <link rel="manifest" href="manifest.json">
   
   <!-- AdSense 코드 (PWA 환경에서 로딩 실패 시 무시) -->
@@ -29,7 +29,6 @@
   </script>
   
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="alternate icon" href="favicon.ico">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -424,24 +423,7 @@
     window.firebaseUpdateDoc = updateDoc;
   </script>
 
-  <!-- 게임 모듈들 -->
-  <script type="module" src="js/ColorTilesGame.js"></script>
-  <script type="module" src="js/MemoryGame.js"></script>
-  <script type="module" src="js/GameManager.js"></script>
-  
-  <!-- 메인 초기화 -->
-  <script type="module">
-    import { ColorTilesGame } from './js/ColorTilesGame.js';
-    import { MemoryGame } from './js/MemoryGame.js';
-    import { GameManager } from './js/GameManager.js';
-    
-    // 게임 초기화
-    const colorTilesGame = new ColorTilesGame();
-    const gameManager = new GameManager();
-    
-    // 전역에서 접근 가능하도록 설정
-    window.colorTilesGame = colorTilesGame;
-    window.gameManager = gameManager;
-  </script>
+  <!-- 단일 번들 스크립트 (롤백) -->
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'color-tiles-v4';
+const CACHE_NAME = 'color-tiles-v5';
 const urlsToCache = [
   '/',
   '/index.html',

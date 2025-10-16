@@ -329,6 +329,10 @@ class ColorTilesGame {
     
     this.nickname = nickname;
     localStorage.setItem('colorTilesNickname', nickname);
+    // 신규 사용자 초기 스테이지 데이터 생성 (1스테이지 해제)
+    if (!this.stageData) {
+      this.stageData = this.getDefaultStageData();
+    }
     
     // Firebase에 저장
     await this.saveToFirebase();
@@ -354,6 +358,8 @@ class ColorTilesGame {
       }
       // Firebase에서 데이터 로드
       this.stageData = await this.loadStageData();
+      // 로드된 데이터 보정(1스테이지는 항상 해제, 누락 필드 채움)
+      this.stageData = this.normalizeStageData(this.stageData);
       // 닉네임이 있으면 바로 홈화면으로
       this.nicknameModal.classList.add('hidden');
       this.showHomeScreen();
@@ -411,6 +417,9 @@ class ColorTilesGame {
 
   // 홈화면 표시
   showHomeScreen() {
+    if (!this.stageData) {
+      this.stageData = this.getDefaultStageData();
+    }
     this.homeScreen.classList.remove('hidden');
     this.gameContainer.classList.add('hidden');
     this.updateHomeScreen();
@@ -565,6 +574,24 @@ class ColorTilesGame {
       });
     }
     return { stages };
+  }
+
+  // 스테이지 데이터 보정: 누락 필드 채우기 및 1스테이지 강제 해제
+  normalizeStageData(data) {
+    const defaults = this.getDefaultStageData();
+    const result = { stages: [] };
+    for (let i = 0; i < this.totalStages; i++) {
+      const existing = (data && data.stages && data.stages[i]) ? data.stages[i] : {};
+      const merged = {
+        stage: existing.stage ?? defaults.stages[i].stage,
+        unlocked: (i === 0) ? true : (existing.unlocked ?? defaults.stages[i].unlocked),
+        stars: existing.stars ?? 0,
+        score: existing.score ?? 0,
+        bestTime: (typeof existing.bestTime !== 'undefined') ? existing.bestTime : null
+      };
+      result.stages.push(merged);
+    }
+    return result;
   }
 
   // 스테이지 클리어 처리
