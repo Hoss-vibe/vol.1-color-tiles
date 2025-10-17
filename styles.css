@@ -649,9 +649,8 @@ body {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   font-size: 0.8rem;
   font-weight: 600;
   position: relative;
@@ -1416,4 +1415,90 @@ body {
     padding: 12px 24px;
     font-size: 1rem;
   }
+}
+
+/* 열쇠-문 타일 스타일 */
+.key-tile {
+  border: 2px solid #f6ad55 !important;
+  /* 특수 타일은 이모지 크게 */
+  font-size: 1.6rem;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-2px);
+}
+
+.door-tile {
+  border: 2px solid #654321 !important;
+  /* 특수 타일은 이모지 크게 */
+  font-size: 1.6rem;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-2px);
+}
+
+/* 황금색 열쇠-문 */
+.key-gold, .door-gold {
+  background: linear-gradient(135deg, #ffd700, #ffed4e) !important;
+  border-color: #f6ad55 !important;
+}
+
+/* 은색 열쇠-문 */
+.key-silver, .door-silver {
+  background: linear-gradient(135deg, #c0c0c0, #e8e8e8) !important;
+  border-color: #a0a0a0 !important;
+}
+
+@keyframes keyGlow {
+  from {
+    box-shadow: 0 0 5px #ffd700;
+  }
+  to {
+    box-shadow: 0 0 15px #ffd700, 0 0 25px #ffd700;
+  }
+}
+
+@keyframes doorGlow {
+  from {
+    box-shadow: 0 0 5px #8b4513;
+  }
+  to {
+    box-shadow: 0 0 15px #8b4513, 0 0 25px #8b4513;
+  }
+}
+
+@keyframes silverGlow {
+  from {
+    box-shadow: 0 0 5px #c0c0c0;
+  }
+  to {
+    box-shadow: 0 0 15px #c0c0c0, 0 0 25px #c0c0c0;
+  }
+}
+
+@keyframes keyDoorBonus {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1) translateY(-50px);
+  }
+}
+
+/* 모달 타이틀/메시지 폰트 크기 통일 및 볼드 제거용 */
+#confirmModal .same-size,
+#alertModal .same-size {
+  font-size: 1rem !important;
+  font-weight: 400 !important; /* bold 제거 */
 }

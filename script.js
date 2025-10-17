@@ -1,24 +1,31 @@
 class ColorTilesGame {
   constructor() {
-    // 스테이지 설정 (13개로 확장, 모든 스테이지 50초 고정, 8x8 고정)
+    // 스테이지 설정 (20개로 확장, 모든 스테이지 50초 고정, 8x8 고정)
     this.stageConfigs = [
-      { boardSize: 8, numColors: 5, timeLimit: 50 },   // Stage 1
-      { boardSize: 8, numColors: 6, timeLimit: 50 },   // Stage 2
-      { boardSize: 8, numColors: 7, timeLimit: 50 },   // Stage 3
-      { boardSize: 8, numColors: 8, timeLimit: 50 },   // Stage 4
-      { boardSize: 8, numColors: 9, timeLimit: 50 },   // Stage 5
-      { boardSize: 8, numColors: 10, timeLimit: 50 },  // Stage 6
-      { boardSize: 8, numColors: 11, timeLimit: 50 },  // Stage 7
-      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 8
-      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 9
-      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 10
-      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 11
-      { boardSize: 8, numColors: 12, timeLimit: 50 },  // Stage 12
-      { boardSize: 8, numColors: 13, timeLimit: 50 }   // Stage 13 (신규 색상 포함)
+      { boardSize: 8, numColors: 5, timeLimit: 50 },   // 1
+      { boardSize: 8, numColors: 6, timeLimit: 50 },   // 2
+      { boardSize: 8, numColors: 7, timeLimit: 50 },   // 3
+      { boardSize: 8, numColors: 8, timeLimit: 50 },   // 4
+      { boardSize: 8, numColors: 9, timeLimit: 50 },   // 5
+      { boardSize: 8, numColors: 10, timeLimit: 50 },  // 6
+      { boardSize: 8, numColors: 11, timeLimit: 50 },  // 7
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // 8
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // 9
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // 10
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // 11
+      { boardSize: 8, numColors: 12, timeLimit: 50 },  // 12
+      { boardSize: 8, numColors: 13, timeLimit: 50 },  // 13
+      { boardSize: 8, numColors: 13, timeLimit: 50 },  // 14
+      { boardSize: 8, numColors: 13, timeLimit: 50, keyDoorPairs: 1 },  // 15 (열쇠/자물쇠 1쌍)
+      { boardSize: 8, numColors: 13, timeLimit: 50, keyDoorPairs: 1 },  // 16
+      { boardSize: 8, numColors: 13, timeLimit: 50, keyDoorPairs: 2 },  // 17 (열쇠/자물쇠 2쌍)
+      { boardSize: 8, numColors: 13, timeLimit: 50, keyDoorPairs: 2 },  // 18
+      { boardSize: 8, numColors: 13, timeLimit: 50, keyDoorPairs: 2 },  // 19
+      { boardSize: 8, numColors: 13, timeLimit: 50, keyDoorPairs: 2 }   // 20
     ];
     
     this.currentStage = 1; // 기본값으로 1스테이지로 시작
-    this.totalStages = 13;
+    this.totalStages = 20;
     this.totalScore = 0;
     
     // 홈화면 관련
@@ -86,10 +93,10 @@ class ColorTilesGame {
     this.timerInterval = null;
     this.nickname = '';
     
-    // 아이템 개수 (테스트용: 모두 20개)
-    this.hammerCount = 20;
-    this.shuffleCount = 20;
-    this.timeCount = 20;
+    // 아이템 개수 (초기 지급: 각 5개)
+    this.hammerCount = 5;
+    this.shuffleCount = 5;
+    this.timeCount = 5;
     this.activeItem = null; // 현재 선택된 아이템
     
     this.colors = [
@@ -107,6 +114,12 @@ class ColorTilesGame {
       'color-11', // 파스텔 라임
       'color-12'  // 파스텔 네이비
     ];
+    
+    // 특수 타일 (열쇠-문)
+    this.specialTiles = {
+      key: 'key-tile',      // 열쇠 타일
+      door: 'door-tile'     // 문 타일
+    };
     
     this.initializeEventListeners();
     this.initializeBoard();
@@ -462,6 +475,44 @@ class ColorTilesGame {
     });
   }
 
+  // 단일 버튼 확인 모달 (확인만 표시, 폰트 크기 통일용 클래스 적용)
+  showOneButtonConfirm(title, message, okText = '확인') {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('confirmModal');
+      const titleEl = document.getElementById('confirmTitle');
+      const msgEl = document.getElementById('confirmMessage');
+      const okBtn = document.getElementById('confirmOkBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+
+      // 내용 설정
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+
+      // 폰트 크기 통일: 제목도 본문과 동일하게 처리하려면 클래스 추가
+      titleEl.classList.add('same-size');
+      msgEl.classList.add('same-size');
+
+      // 취소 버튼 숨김, 확인 텍스트 설정
+      if (cancelBtn) cancelBtn.classList.add('hidden');
+      if (okBtn) okBtn.textContent = okText || '확인';
+
+      modal.classList.remove('hidden');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        // 원상복구
+        titleEl.classList.remove('same-size');
+        msgEl.classList.remove('same-size');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+        if (okBtn) okBtn.textContent = '확인';
+        okBtn.removeEventListener('click', onOk);
+      };
+
+      const onOk = () => { cleanup(); resolve(true); };
+      okBtn.addEventListener('click', onOk);
+    });
+  }
+
   applyNicknameReadonlyState() {
     const saved = localStorage.getItem('colorTilesNickname');
     const editBtn = document.getElementById('nicknameEditBtn');
@@ -580,12 +631,16 @@ class ColorTilesGame {
     this.homeScreen.classList.remove('hidden');
     this.gameContainer.classList.add('hidden');
     if (this.memoryScreen) this.memoryScreen.classList.add('hidden');
+    // 스테이지 카드 수를 stageConfigs 길이에 맞게 동기화
+    this.syncStageCardsWithConfigs();
     this.updateHomeScreen();
     this.updateGameSlider();
   }
 
   // 홈화면 업데이트
   updateHomeScreen() {
+    // 카드 수량 동기화 보장
+    this.syncStageCardsWithConfigs();
     // 총 별/총점 계산
     const totalStars = this.stageData.stages.reduce((sum, stage) => sum + stage.stars, 0);
     const totalStages = this.stageConfigs.length;
@@ -627,6 +682,44 @@ class ColorTilesGame {
         card.onclick = null;
       }
     });
+  }
+
+  // 현재 stageConfigs 길이에 맞게 스테이지 카드 DOM 생성/동기화
+  syncStageCardsWithConfigs() {
+    const totalStages = this.stageConfigs.length;
+    // 우선 홈 화면의 스테이지 그리드 컨테이너 탐색
+    let grid = document.querySelector('.stages-grid');
+    if (!grid) return; // 컨테이너가 없으면 건너뜀
+
+    const existing = grid.querySelectorAll('.stage-card');
+    if (existing.length === totalStages) return; // 이미 맞으면 종료
+
+    // 재구성
+    grid.innerHTML = '';
+    for (let i = 1; i <= totalStages; i++) {
+      const card = document.createElement('div');
+      card.className = 'stage-card locked';
+      card.dataset.stage = String(i);
+
+      // 번호
+      const num = document.createElement('div');
+      num.className = 'stage-number';
+      num.textContent = String(i);
+      card.appendChild(num);
+
+      // 별 표시 영역 (3개)
+      const starsWrap = document.createElement('div');
+      starsWrap.className = 'stage-stars';
+      for (let s = 0; s < 3; s++) {
+        const star = document.createElement('span');
+        star.className = 'star empty';
+        star.textContent = '☆';
+        starsWrap.appendChild(star);
+      }
+      card.appendChild(starsWrap);
+
+      grid.appendChild(card);
+    }
   }
 
   // 스테이지 시작
@@ -689,7 +782,13 @@ class ColorTilesGame {
     if (tilesPerColor % 2 !== 0) {
       tilesPerColor = tilesPerColor - 1;
     }
-    const totalTiles = this.numColors * tilesPerColor;
+    
+    // 열쇠-문 쌍 수 계산
+    const stageConfig = this.stageConfigs[this.currentStage - 1];
+    const keyDoorPairs = stageConfig.keyDoorPairs || 0;
+    const keyDoorTiles = keyDoorPairs * 2; // 열쇠 + 문
+    
+    const totalTiles = this.numColors * tilesPerColor + keyDoorTiles;
     const boardCells = this.boardSize * this.boardSize;
     const emptySpaces = boardCells - totalTiles;
     
@@ -709,7 +808,17 @@ class ColorTilesGame {
     
     for (let color = 0; color < this.numColors; color++) {
       for (let i = 0; i < tilesPerColor; i++) {
-        tilesToPlace.push(color);
+        tilesToPlace.push({ type: 'color', value: color });
+      }
+    }
+    
+    // 열쇠-문 타일 추가 (같은 색상으로)
+    if (keyDoorPairs > 0) {
+      for (let i = 0; i < keyDoorPairs; i++) {
+        // 열쇠와 문을 같은 색상으로 설정 (쌍별로 구분)
+        const pairColor = i === 0 ? 'gold' : 'silver'; // 첫 번째 쌍: 황금, 두 번째 쌍: 은색
+        tilesToPlace.push({ type: 'key', value: 'key', color: pairColor });
+        tilesToPlace.push({ type: 'door', value: 'door', color: pairColor });
       }
     }
     
@@ -721,6 +830,9 @@ class ColorTilesGame {
     
     // 섞은 타일들을 랜덤 위치에 배치
     let tileIndex = 0;
+    let keyPosition = null;
+    let doorPosition = null;
+    
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
         if (tileIndex < totalTiles) {
@@ -728,8 +840,47 @@ class ColorTilesGame {
           const randomCol = Math.floor(Math.random() * this.boardSize);
           
           if (this.board[randomRow][randomCol].isEmpty) {
+            const tile = tilesToPlace[tileIndex];
+            
+            // 열쇠-문 배치 시 서로 1칸 이내에 있지 않도록 체크
+            if (tile.type === 'key' || tile.type === 'door') {
+              let validPosition = true;
+              
+              if (tile.type === 'key') {
+                // 문이 이미 배치된 경우 거리 체크
+                if (doorPosition) {
+                  const distance = Math.abs(randomRow - doorPosition.row) + Math.abs(randomCol - doorPosition.col);
+                  if (distance <= 1) {
+                    validPosition = false;
+                  }
+                }
+                if (validPosition) {
+                  keyPosition = { row: randomRow, col: randomCol };
+                }
+              } else if (tile.type === 'door') {
+                // 열쇠가 이미 배치된 경우 거리 체크
+                if (keyPosition) {
+                  const distance = Math.abs(randomRow - keyPosition.row) + Math.abs(randomCol - keyPosition.col);
+                  if (distance <= 1) {
+                    validPosition = false;
+                  }
+                }
+                if (validPosition) {
+                  doorPosition = { row: randomRow, col: randomCol };
+                }
+              }
+              
+              if (!validPosition) {
+                // 유효하지 않은 위치면 다시 시도
+                col--;
+                continue;
+              }
+            }
+            
             this.board[randomRow][randomCol] = {
-              color: tilesToPlace[tileIndex],
+              color: tile.type === 'color' ? tile.value : tile.color,
+              type: tile.type,
+              value: tile.value,
               isEmpty: false
             };
             tileIndex++;
@@ -766,8 +917,27 @@ class ColorTilesGame {
       tile.className = 'tile';
       if (cell.isEmpty) {
         tile.classList.add('empty');
+      } else if (cell.type === 'key') {
+        tile.classList.add('key-tile');
+        // 색상별 클래스 추가
+        if (cell.color === 'gold') {
+          tile.classList.add('key-gold');
+        } else if (cell.color === 'silver') {
+          tile.classList.add('key-silver');
+        }
+        tile.textContent = '🔑';
+      } else if (cell.type === 'door') {
+        tile.classList.add('door-tile');
+        // 색상별 클래스 추가
+        if (cell.color === 'gold') {
+          tile.classList.add('door-gold');
+        } else if (cell.color === 'silver') {
+          tile.classList.add('door-silver');
+        }
+        tile.textContent = '🔒';
       } else {
         tile.classList.add(this.colors[cell.color]);
+        tile.textContent = ''; // 일반 타일은 텍스트 없음
       }
     });
   }
@@ -864,10 +1034,7 @@ class ColorTilesGame {
     this.boardSize = this.stageConfigs[0].boardSize;
     this.numColors = this.stageConfigs[0].numColors;
     this.timeLeft = this.stageConfigs[0].timeLimit;
-    // 아이템 재지급 (테스트용: 모두 20개)
-    this.hammerCount = 20;
-    this.shuffleCount = 20;
-    this.timeCount = 20;
+    // 아이템은 리셋 시 재지급하지 않음 (진행 중 수량 유지)
     this.activeItem = null;
     this.stopTimer();
     this.updateDisplay();
@@ -966,6 +1133,17 @@ class ColorTilesGame {
     // 총점에 현재 점수 추가 (스테이지 클리어 시에만)
     this.totalScore += this.score;
     
+    // 5의 배수 스테이지 클리어 보상: 각 아이템 +1 (5, 10, 15, 20 ...)
+    if (this.currentStage % 5 === 0) {
+      this.hammerCount += 1;
+      this.shuffleCount += 1;
+      this.timeCount += 1;
+      this.updateItemDisplay();
+      try {
+        await this.alertModal('보상 지급', '축하합니다! 각 아이템이 +1 지급되었습니다.');
+      } catch (e) { /* noop */ }
+    }
+    
     // 스테이지 클리어 모달 표시
     this.stageClearScoreElement.textContent = this.score;
     this.stageClearTotalScoreElement.textContent = this.totalScore;
@@ -1030,6 +1208,18 @@ class ColorTilesGame {
       }
     });
     
+    // 열쇠-문 매칭 확인
+    const keyTiles = foundTiles.filter(tile => tile.type === 'key');
+    const doorTiles = foundTiles.filter(tile => tile.type === 'door');
+    
+    if (keyTiles.length > 0 && doorTiles.length > 0) {
+      // 열쇠-문 매칭 성공!
+      allMatchedTiles.push(...keyTiles, ...doorTiles);
+      this.score += 50; // 열쇠-문 매칭 보너스 점수
+      this.timeLeft += 10; // 시간 추가
+      this.showKeyDoorBonus(); // 특별 효과 표시
+    }
+    
     if (allMatchedTiles.length > 0) {
       // 점수 추가
       this.score += allMatchedTiles.length;
@@ -1039,6 +1229,15 @@ class ColorTilesGame {
       allMatchedTiles.forEach(({row: r, col: c}) => {
         this.board[r][c].isEmpty = true;
         this.board[r][c].color = null;
+        this.board[r][c].type = null;
+        this.board[r][c].value = null;
+        
+        // DOM에서도 이모지 제거
+        const tileIndex = r * this.boardSize + c;
+        const tileElement = this.gameBoard.children[tileIndex];
+        if (tileElement) {
+          tileElement.textContent = '';
+        }
       });
       
       // 매칭 애니메이션과 연결선 표시
@@ -1051,11 +1250,9 @@ class ColorTilesGame {
         // 보드가 비어있으면 게임 종료
         if (this.isBoardEmpty()) {
           await this.endGame('clear');
-        } else {
-          // 망치가 없고 움직일 수도 없으면 게임 종료
-          if (this.hammerCount === 0 && !this.hasValidMoves()) {
-            await this.endGame('nomoves');
-          }
+      } else {
+          // 유효한 움직임 없으면 일시정지 + 리셋 유도
+          await this.ensureMovableOrPause();
         }
       }, 300); // 애니메이션 300ms
     } else {
@@ -1483,14 +1680,11 @@ class ColorTilesGame {
     this.updateItemDisplay();
     this.renderBoard();
     
-    // 보드가 비어있으면 게임 종료
+    // 보드가 비어있으면 게임 종료, 아니면 유효 움직임 체크
     if (this.isBoardEmpty()) {
       await this.endGame('clear');
       } else {
-      // 망치가 없고 움직일 수도 없으면 게임 종료
-      if (this.hammerCount === 0 && !this.hasValidMoves()) {
-        await this.endGame('nomoves');
-      }
+      await this.ensureMovableOrPause();
     }
     
     return true;
@@ -1501,12 +1695,21 @@ class ColorTilesGame {
     if (!this.gameActive) return;
     if (this.shuffleCount === 0) return;
     
-    // 현재 보드의 모든 타일 수집
+    // 현재 보드의 모든 타일 수집 (열쇠-문 제외)
     const tiles = [];
+    const keyDoorPositions = [];
+    
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
-        if (!this.board[row][col].isEmpty) {
-          tiles.push(this.board[row][col].color);
+        const cell = this.board[row][col];
+        if (!cell.isEmpty) {
+          if (cell.type === 'key' || cell.type === 'door') {
+            // 열쇠-문은 위치만 저장하고 움직이지 않음
+            keyDoorPositions.push({ row, col, cell });
+          } else {
+            // 일반 타일만 셔플 대상
+            tiles.push(cell.color);
+          }
         }
       }
     }
@@ -1517,39 +1720,195 @@ class ColorTilesGame {
       [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
     }
     
-    // 보드 초기화
+    // 보드 초기화 (열쇠-문 제외)
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
-        this.board[row][col].isEmpty = true;
-        this.board[row][col].color = null;
+        const cell = this.board[row][col];
+        if (cell.type !== 'key' && cell.type !== 'door') {
+          cell.isEmpty = true;
+          cell.color = null;
+          cell.type = null;
+          cell.value = null;
+        }
       }
     }
     
-    // 섞은 타일들을 랜덤 위치에 재배치
+    // 섞은 타일들을 랜덤 위치에 재배치 (열쇠-문 위치 제외)
     let tileIndex = 0;
-    const positions = [];
+    const availablePositions = [];
     for (let row = 0; row < this.boardSize; row++) {
       for (let col = 0; col < this.boardSize; col++) {
-        positions.push({ row, col });
+        const cell = this.board[row][col];
+        if (cell.type !== 'key' && cell.type !== 'door') {
+          availablePositions.push({ row, col });
+        }
       }
     }
     
     // 위치도 섞기
-    for (let i = positions.length - 1; i > 0; i--) {
+    for (let i = availablePositions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [positions[i], positions[j]] = [positions[j], positions[i]];
+      [availablePositions[i], availablePositions[j]] = [availablePositions[j], availablePositions[i]];
     }
     
     // 타일 배치
     tiles.forEach((color, index) => {
-      const pos = positions[index];
-      this.board[pos.row][pos.col].color = color;
-      this.board[pos.row][pos.col].isEmpty = false;
+      if (index < availablePositions.length) {
+        const pos = availablePositions[index];
+        this.board[pos.row][pos.col].color = color;
+        this.board[pos.row][pos.col].isEmpty = false;
+        this.board[pos.row][pos.col].type = 'color';
+        this.board[pos.row][pos.col].value = color;
+      }
     });
     
     this.shuffleCount--;
     this.updateItemDisplay();
     this.renderBoard();
+  }
+
+  // 유효한 움직임이 없으면 타이머를 잠시 멈추고, 리셋 여부를 묻는 모달을 띄운 뒤
+  // 리셋을 선택하면 아이템 소모 없이 셔플을 수행하고 타이머를 재개한다.
+  async ensureMovableOrPause() {
+    if (this.noMovesPauseActive) return;
+    // 2개 이상 타일이 남아있고, 유효한 움직임이 없을 때만 동작
+    const remaining = this.countRemainingTiles();
+    if (remaining >= 2 && !this.hasValidMoves()) {
+      this.noMovesPauseActive = true;
+      const wasRunning = Boolean(this.timerInterval);
+      if (wasRunning) this.stopTimer();
+      const ok = await this.showOneButtonConfirm('움직일 수 없습니다.', '타일이 셔플 됩니다.', '확인');
+      if (ok) {
+        this.reshufflePreservingSpecials(); // 아이템 소모 없이 셔플
+      }
+      // 타이머 재개
+      if (wasRunning) this.startTimer();
+      this.noMovesPauseActive = false;
+    }
+  }
+
+  countRemainingTiles() {
+    let cnt = 0;
+    for (let r = 0; r < this.boardSize; r++) {
+      for (let c = 0; c < this.boardSize; c++) {
+        if (!this.board[r][c].isEmpty) cnt++;
+      }
+    }
+    return cnt;
+  }
+
+  // 아이템 소모 없이, 특수 타일은 위치 고정으로 셔플
+  reshufflePreservingSpecials() {
+    // 현재 보드의 모든 일반 타일 수집
+    const originalColors = [];
+    for (let row = 0; row < this.boardSize; row++) {
+      for (let col = 0; col < this.boardSize; col++) {
+        const cell = this.board[row][col];
+        if (!cell.isEmpty && (cell.type !== 'key' && cell.type !== 'door')) {
+          originalColors.push(cell.color);
+        }
+      }
+    }
+
+    // 일반 타일 자리를 비우는 헬퍼
+    const clearNormalTiles = () => {
+      for (let row = 0; row < this.boardSize; row++) {
+        for (let col = 0; col < this.boardSize; col++) {
+          const cell = this.board[row][col];
+          if (cell.type !== 'key' && cell.type !== 'door') {
+            cell.isEmpty = true;
+            cell.color = null;
+            cell.type = null;
+            cell.value = null;
+          }
+        }
+      }
+    };
+
+    // 비어있는(일반 타일이 들어갈 수 있는) 위치 목록 수집 헬퍼
+    const collectAvailablePositions = () => {
+      const positions = [];
+      for (let row = 0; row < this.boardSize; row++) {
+        for (let col = 0; col < this.boardSize; col++) {
+          const cell = this.board[row][col];
+          if (cell.type !== 'key' && cell.type !== 'door') {
+            positions.push({ row, col });
+          }
+        }
+      }
+      return positions;
+    };
+
+    // 시도 반복: 유효 움직임이 생길 때까지 셔플
+    const maxAttempts = 100;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // 섞을 색 배열 복사 후 셔플
+      const tiles = [...originalColors];
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+
+      clearNormalTiles();
+
+      // 위치 수집 및 섞기
+      const availablePositions = collectAvailablePositions();
+      for (let i = availablePositions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availablePositions[i], availablePositions[j]] = [availablePositions[j], availablePositions[i]];
+      }
+
+      // 배치
+      tiles.forEach((color, index) => {
+        if (index < availablePositions.length) {
+          const pos = availablePositions[index];
+          const cell = this.board[pos.row][pos.col];
+          cell.color = color;
+          cell.isEmpty = false;
+          cell.type = 'color';
+          cell.value = color;
+        }
+      });
+
+      this.renderBoard();
+      if (this.hasValidMoves()) return; // 성공 조건 달성
+    }
+
+    // 안전장치: 위 시도들로도 실패 시 강제 1수 보장 생성
+    // 하나의 빈 칸(e)을 기준으로 위/아래(또는 좌/우)에 같은 색 두 타일을 배치
+    // 빈 칸 후보 찾기
+    const empties = [];
+    for (let r = 0; r < this.boardSize; r++) {
+      for (let c = 0; c < this.boardSize; c++) {
+        const cell = this.board[r][c];
+        if (cell.isEmpty) empties.push({ r, c });
+      }
+    }
+
+    if (empties.length > 0) {
+      const e = empties[Math.floor(Math.random() * empties.length)];
+      // 후보 색상
+      const colorChoice = (originalColors.length > 0) ? originalColors[0] : 0;
+
+      // 위/아래 우선 배치 시도
+      const tryPlace = (r1, c1, r2, c2) => {
+        const within = (r, c) => r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize;
+        if (!within(r1, c1) || !within(r2, c2)) return false;
+        const a = this.board[r1][c1];
+        const b = this.board[r2][c2];
+        if ((a.type === 'key' || a.type === 'door') || (b.type === 'key' || b.type === 'door')) return false;
+        // 배치 강제
+        a.isEmpty = false; a.type = 'color'; a.value = colorChoice; a.color = colorChoice;
+        b.isEmpty = false; b.type = 'color'; b.value = colorChoice; b.color = colorChoice;
+        return true;
+      };
+
+      if (!tryPlace(e.r - 1, e.c, e.r + 1, e.c)) {
+        // 좌/우 시도
+        tryPlace(e.r, e.c - 1, e.r, e.c + 1);
+      }
+      this.renderBoard();
+    }
   }
   
   // 시계 아이템 사용
@@ -1594,6 +1953,35 @@ class ColorTilesGame {
         bonusText.parentNode.removeChild(bonusText);
       }
     }, 1000);
+  }
+
+  showKeyDoorBonus() {
+    const gameBoard = document.getElementById('gameBoard');
+    if (!gameBoard) return;
+    
+    const boardRect = gameBoard.getBoundingClientRect();
+    
+    const bonusText = document.createElement('div');
+    bonusText.className = 'key-door-bonus';
+    bonusText.textContent = '🔑🚪 +50점 +10초';
+    bonusText.style.position = 'fixed';
+    bonusText.style.left = boardRect.left + boardRect.width / 2 + 'px';
+    bonusText.style.top = boardRect.top + boardRect.height / 2 + 'px';
+    bonusText.style.transform = 'translate(-50%, -50%)';
+    bonusText.style.fontSize = '1.8rem';
+    bonusText.style.fontWeight = '700';
+    bonusText.style.color = '#ffd700';
+    bonusText.style.pointerEvents = 'none';
+    bonusText.style.zIndex = '1000';
+    bonusText.style.animation = 'keyDoorBonus 2s ease-out forwards';
+    
+    document.body.appendChild(bonusText);
+    
+    setTimeout(() => {
+      if (bonusText.parentNode) {
+        bonusText.parentNode.removeChild(bonusText);
+      }
+    }, 2000);
   }
   
   // 리더보드에 점수 저장 (Firebase)
