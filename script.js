@@ -153,6 +153,19 @@ class ColorTilesGame {
     }
     
     this.startGameBtn.addEventListener('click', () => this.startGame());
+    
+    // "더 이상 보지 않기" 체크박스 이벤트
+    const dontShowAgainCheckbox = document.getElementById('dontShowAgainCheckbox');
+    if (dontShowAgainCheckbox) {
+      dontShowAgainCheckbox.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          localStorage.setItem('colorTilesDontShowInstructions', 'true');
+        } else {
+          localStorage.removeItem('colorTilesDontShowInstructions');
+        }
+      });
+    }
+    
     // reset 버튼은 삭제됨
     this.playAgainBtn.addEventListener('click', () => {
       this.gameOverModal.classList.add('hidden');
@@ -737,8 +750,15 @@ class ColorTilesGame {
     this.homeScreen.classList.add('hidden');
     this.gameContainer.classList.remove('hidden');
     
-    // 게임 시작
-    this.startGame();
+    // "더 이상 보지 않기" 체크 여부 확인
+    const dontShowAgain = localStorage.getItem('colorTilesDontShowInstructions');
+    if (dontShowAgain === 'true') {
+      // 체크된 경우 바로 게임 시작
+      this.startGame();
+    } else {
+      // 체크되지 않은 경우 사용방법 모달 표시
+      this.instructionsModal.classList.remove('hidden');
+    }
   }
 
   // 시간 기반 별 계산
